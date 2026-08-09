@@ -9,6 +9,10 @@ const CONFIG = {
   targetDate: new Date(2026, 7, 12, 0, 0, 0),      // Year, MonthIndex(0=Jan), Day, Hour, Min, Sec — Aug 12, 2026, 12:00 AM
   name: "Dedeepya",                                // shown in "Happy Birthday [name]" and overlaid on the cake
 
+  // --- birthday message shown at the top of the page ---
+  // {name} is replaced with CONFIG.name above — edit the wording/emoji freely
+  bigWishText: "Happy Birthday {name} 🎂",
+
   // --- password gate text ---
   gateTitle: "🔒 This Is Locked",
   gateSubtitle: "Enter the 4-digit code to continue",
@@ -31,16 +35,28 @@ const CONFIG = {
   photoWallHint: "Click or drag a photo onto any backdrop frame to upload (up to 15)",
 
   // --- backdrop photos behind the cake (15 slots) ---
-  // Put your own image files in a "photos" folder next to this HTML file (e.g.
-  // photos/backdrop1.jpg ... photos/backdrop15.jpg), or use hosted/cloud image
-  // links instead. Whatever you list here loads automatically every time the
-  // page opens — no upload needed. Leave an entry as "" to keep that one slot
-  // as a click-or-drag upload placeholder instead. You can always click any
-  // slot (pre-filled or empty) later to replace just that one photo.
+  // Photos live in the "images/birthday" folder next to this HTML file — e.g.
+  // images/birthday/birthday1.jpg ... images/birthday/birthday15.jpg, or cloud
+  // links work too. These load automatically every time the page opens, no
+  // upload needed. Leave an entry as "" for a slot you'd rather fill in by
+  // hand — you can also click any slot (pre-filled or empty) later to
+  // replace just that one photo.
   backdropPhotos: [
-    "", "", "", "", "",
-    "", "", "", "", "",
-    "", "", "", "", ""
+    "images/birthday/birthday2.jpg",
+    "images/birthday/birthday11.jpg",
+    "images/birthday/birthday5.jpg",
+    "images/birthday/birthday15.jpg",
+    "images/birthday/birthday13.jpg",
+    "images/birthday/birthday6.jpg",
+    "images/birthday/birthday8.jpg",
+    "images/birthday/birthday7.jpg",
+    "images/birthday/birthday3.jpg",
+    "images/birthday/birthday4.jpg",
+    "images/birthday/birthday9.jpg",
+    "images/birthday/birthday12.jpg",
+    "images/birthday/birthday1.jpg",
+    "images/birthday/birthday10.jpg",
+    "images/birthday/birthday14.jpg"
   ],
 
   // --- secret message button (main page) + secret page ---
