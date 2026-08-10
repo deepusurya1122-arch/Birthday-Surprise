@@ -132,18 +132,7 @@ const CONFIG = {
     "💌 A Message For You",
 
   customMessage:
-    "Wishing you many Happy returns of the bujjamma🎉🎂❤️❤️ ilane chala chala birthday inka happy ga cheskovali nuv🧿🧿
-     Happy anniversary kanna❤️❤️❤️
-     Asalu e 4 years entha fast ga aipoyayo teliyaledu na prathi moment ni netho share cheskunte gani complete feel rakunela aipoyav Bujji
-     Nak e vishyamina netho chepte chalu nuvve na love na wife na bestfriend ❤️❤️
-     Nuv na happy place 🥺 ne pakkana undi ninnu chustu undipovalanundi
-     Sorry kanna navalla chala sarlu edchav 🥺😘😘😘😘. Adi intentionally eppudu cheyanu kanna but anukokunda aipotay bujji but ninnu happy ga unchali ani eppudu anukutu unta
-     Ne pichodini chala love chestav 🥺🥺 na luck nuv na life loki radam bujji 😘😘
-     Roju chala miss autunna bujji
-     Nuv tension assala teskoku nuv anukunnavanni e year Neku autai 🧿🧿😘😘
-     Sorry bujji dress time ki rananduku nek salary paddaka em kavalanna konta bujji nuv na bangaru 😘
-     Don't ever stop talking to me 🥺 😘😘😘😘😘
-     I love you forever ♾️ 😘💕",
+    "Happy Birthday, my love. Every moment with you feels like a gift, and today I just want you to know how deeply loved and cherished you are. Here's to another year of us. 💕",
 
 
   // --- secret page's own photo wall ---
