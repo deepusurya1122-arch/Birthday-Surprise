@@ -44,7 +44,7 @@
 
       <!-- Dudu & Bubu: dedicated space above the cake, outside the polaroid stage -->
       <div class="duduBubuWrap" aria-hidden="true">
-        <img src="images/dudu-bubu.gif" alt="" class="duduBubuGif">
+        <img id="bubuDuduGif" src="" alt="" class="duduBubuGif">
       </div>
 
       <div class="streamerRow">
@@ -112,6 +112,7 @@
   document.getElementById('revealMessageTitle').textContent = "For " + CONFIG.name;
   document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
   document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
+  document.getElementById('bubuDuduGif').src = CONFIG.bubuDuduGif;
   document.getElementById('cakeImg').addEventListener('load', function(){
     if(mainPage.style.display === 'block') layoutCakeBackdrop();
   });

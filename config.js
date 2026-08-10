@@ -34,6 +34,10 @@ const CONFIG = {
   cakeNameOverlay: true,                           // set to false to hide the banner over the cake
   cakeOverlayText: "Happy birthday Deepuu 😘😘",     // the text shown in that banner — edit freely
 
+  // --- birthday page decoration ---
+  // Keep this GIF inside the images folder.
+  bubuDuduGif: "images/bubu-dudu.gif",
+
   // --- backdrop photos behind the cake (15 slots) ---
   // Photos live in the "images/birthday" folder next to this HTML file — e.g.
   // images/birthday/birthday1.jpg ... images/birthday/birthday15.jpg, or cloud
