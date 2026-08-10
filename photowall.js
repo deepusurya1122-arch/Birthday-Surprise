@@ -41,7 +41,7 @@ function buildPhotoWall(containerId, count, extraClass, initialSrcs, showLabel){
   const slots = [];
 
   for(let i=0;i<count;i++){
-    const rot = (Math.random()*16 - 8).toFixed(1);
+    const rot = (Math.random()*20 - 10).toFixed(1); // random tilt only, -10deg to +10deg
     const card = document.createElement('div');
     card.className = 'polaroid' + (extraClass ? (' ' + extraClass) : '');
     card.dataset.rot = rot;
@@ -250,7 +250,14 @@ function layoutPhotosAroundMessage(slots, messageEl, opts){
   const bottomMargin = opts.bottomMargin != null ? opts.bottomMargin : 56; // room for the back button
   const baseCardW = opts.baseCardW != null ? opts.baseCardW : 128; // increased further, as requested
   const minCardW = opts.minCardW != null ? opts.minCardW : 56;
-  const cardAspect = 1.22; // shorter than the labeled version since there's no caption text
+  // Exact rendered height = frame (0.85 * width) + top/bottom padding (8+16,
+  // matching .secretStage .polaroid.fadedPhoto in style.css). A fixed
+  // multiplier alone can't capture this since padding doesn't scale with
+  // width — using the real formula keeps row-fitting math accurate instead
+  // of just approximately close.
+  const frameFactor = opts.frameFactor != null ? opts.frameFactor : 0.85;
+  const chrome = opts.chrome != null ? opts.chrome : 24; // 8px top pad + 16px bottom pad
+  function cardHeightFor(w){ return frameFactor * w + chrome; }
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -294,7 +301,7 @@ function layoutPhotosAroundMessage(slots, messageEl, opts){
   // there's room, matching a dense, grid-like frame rather than a single
   // thin strip on the sides.
   function fitsAt(w){
-    const h = w * cardAspect;
+    const h = cardHeightFor(w);
     return bandNames.every(function(name){
       const box = bandBoxes[name];
       const count = bandCounts[name];
@@ -308,7 +315,7 @@ function layoutPhotosAroundMessage(slots, messageEl, opts){
   let cardW = baseCardW;
   while(cardW > minCardW && !fitsAt(cardW)){ cardW -= 2; }
   cardW = Math.max(minCardW, cardW);
-  const cardH = cardW * cardAspect;
+  const cardH = cardHeightFor(cardW);
 
   let idx = 0;
   bandNames.forEach(function(name){
@@ -600,6 +607,130 @@ function layoutPhotosGrid(slots, messageEl, opts){
     slot.card.style.left = Math.round(cell.x) + 'px';
     slot.card.style.top = Math.round(cell.y) + 'px';
     if(slot.frame) slot.frame.style.height = (cell.w * 0.85) + 'px';
+  });
+}
+
+
+/**
+ * The container-relative counterpart to layoutPhotosAroundMessage — same
+ * grid-band approach (top/bottom rows spanning the full width, left/right
+ * columns flanking the exclusion area when there's room), but measured
+ * against a given container element's own local box (position:absolute)
+ * instead of the viewport (position:fixed). Used for in-page sections like
+ * the cake backdrop, where photos scroll with the page rather than sitting
+ * in a fixed overlay.
+ *
+ * Randomness is intentionally limited to each photo's rotation (set once,
+ * at creation, in buildPhotoWall) — every photo's position comes from this
+ * grid, so "scattered but never overlapping" is guaranteed by the grid math
+ * itself rather than by chance.
+ *
+ * containerEl: the positioned element (position:relative) that photos are
+ * placed absolutely within.
+ * exclusionRect: {x,y,w,h} in containerEl's own local coordinates — the
+ * area (e.g. the cake) to stay clear of.
+ * opts: same tuning knobs as layoutPhotosAroundMessage (baseCardW, minCardW,
+ * gap, gapFromMessage, sideMargin/topMargin/bottomMargin here just called
+ * margin, applied on all sides).
+ */
+function layoutGridAroundExclusion(slots, containerEl, exclusionRect, opts){
+  opts = opts || {};
+  const n = slots.length;
+  if(n === 0) return;
+
+  const gap = opts.gap != null ? opts.gap : 8;
+  const gapFromCenter = opts.gapFromCenter != null ? opts.gapFromCenter : 10;
+  const margin = opts.margin != null ? opts.margin : 8;
+  const baseCardW = opts.baseCardW != null ? opts.baseCardW : 92;
+  const minCardW = opts.minCardW != null ? opts.minCardW : 44;
+  // Exact rendered height = frame (0.85 * width) + top/bottom padding (8+16,
+  // matching .cakeStage .polaroid.backdropPhoto in style.css) — see the
+  // matching comment in layoutPhotosAroundMessage for why this needs to be
+  // exact rather than an approximate multiplier.
+  const frameFactor = opts.frameFactor != null ? opts.frameFactor : 0.85;
+  const chrome = opts.chrome != null ? opts.chrome : 24; // 8px top pad + 16px bottom pad
+  function cardHeightFor(w){ return frameFactor * w + chrome; }
+
+  const cw = containerEl.clientWidth;
+  const ch = containerEl.clientHeight;
+  if(cw === 0 || ch === 0) return; // not visible/measurable yet
+
+  const topSpace = Math.max(0, exclusionRect.y - margin - gapFromCenter);
+  const bottomSpace = Math.max(0, ch - (exclusionRect.y + exclusionRect.h) - margin - gapFromCenter);
+  const sideW = Math.max(0, (cw - exclusionRect.w) / 2 - margin - gapFromCenter);
+  const sideH = exclusionRect.h;
+
+  const useSides = sideW >= minCardW + gap * 2;
+  const bandNames = useSides ? ['top', 'bottom', 'left', 'right'] : ['top', 'bottom'];
+
+  const bandBoxes = {
+    top:    { w: cw - margin * 2, h: topSpace },
+    bottom: { w: cw - margin * 2, h: bottomSpace },
+    left:   { w: sideW, h: sideH },
+    right:  { w: sideW, h: sideH }
+  };
+
+  const bandCounts = {}; bandNames.forEach(b => bandCounts[b] = 0);
+  if(useSides){
+    let side = Math.round(n / 4);
+    if(side * 2 > n) side = Math.floor(n / 2);
+    bandCounts.left = side;
+    bandCounts.right = side;
+    const remaining = n - side * 2;
+    bandCounts.top = Math.ceil(remaining / 2);
+    bandCounts.bottom = remaining - bandCounts.top;
+  } else {
+    bandCounts.top = Math.ceil(n / 2);
+    bandCounts.bottom = n - bandCounts.top;
+  }
+
+  function fitsAt(w){
+    const h = cardHeightFor(w);
+    return bandNames.every(function(name){
+      const box = bandBoxes[name];
+      const count = bandCounts[name];
+      if(count === 0) return true;
+      if(w > box.w) return false;
+      const cols = Math.max(1, Math.floor((box.w + gap) / (w + gap)));
+      const rows = Math.ceil(count / cols);
+      return (rows * h + (rows - 1) * gap) <= box.h;
+    });
+  }
+  let cardW = baseCardW;
+  while(cardW > minCardW && !fitsAt(cardW)){ cardW -= 2; }
+  cardW = Math.max(minCardW, cardW);
+  const cardH = cardHeightFor(cardW);
+
+  let idx = 0;
+  bandNames.forEach(function(name){
+    const count = bandCounts[name];
+    if(count === 0) return;
+    const box = bandBoxes[name];
+
+    let boxLeft, boxTop;
+    if(name === 'top'){ boxLeft = margin; boxTop = margin; }
+    if(name === 'bottom'){ boxLeft = margin; boxTop = ch - margin - box.h; }
+    if(name === 'left'){ boxLeft = margin; boxTop = exclusionRect.y; }
+    if(name === 'right'){ boxLeft = cw - margin - box.w; boxTop = exclusionRect.y; }
+
+    const cols = Math.max(1, Math.floor((box.w + gap) / (cardW + gap)));
+    const rows = Math.ceil(count / cols);
+    const usedW = cols * cardW + (cols - 1) * gap;
+    const usedH = rows * cardH + (rows - 1) * gap;
+    const originX = boxLeft + (box.w - usedW) / 2;
+    const originY = boxTop + (box.h - usedH) / 2;
+
+    for(let k = 0; k < count; k++){
+      const slot = slots[idx++];
+      const colIdx = k % cols;
+      const rowIdx = Math.floor(k / cols);
+
+      slot.card.style.position = 'absolute';
+      slot.card.style.width = cardW + 'px';
+      slot.card.style.left = Math.round(originX + colIdx * (cardW + gap)) + 'px';
+      slot.card.style.top = Math.round(originY + rowIdx * (cardH + gap)) + 'px';
+      if(slot.frame) slot.frame.style.height = (cardW * 0.85) + 'px';
+    }
   });
 }
 

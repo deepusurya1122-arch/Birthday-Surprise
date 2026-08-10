@@ -321,20 +321,21 @@ body{
   height:640px;
   margin:10px auto 20px;
 }
-/* backdrop polaroid collage sits behind the cake (lower z-index, smaller & dimmer) */
+/* backdrop polaroid collage sits behind the cake — width/frame-height are
+   set inline by layoutGridAroundExclusion() since the size adapts per
+   device. Padding is trimmed from the base .polaroid's caption-sized strip
+   since these have no label text; the layout math accounts for this exact
+   padding, so keep the two in sync if either changes. */
 .cakeStage .polaroid.backdropPhoto{
   position:absolute;
-  width:88px;
-  padding:8px 8px 22px 8px;
   z-index:1;
-  opacity:0.92;
+  padding:8px 8px 16px 8px;
 }
-.cakeStage .polaroid.backdropPhoto .frame{
-  height:78px;
-}
-.cakeStage .polaroid.backdropPhoto .capLabel{
-  font-size:0.6rem;
-  margin-top:5px;
+.cakeStage .polaroid.backdropPhoto .capLabel,
+.secretStage .polaroid.fadedPhoto .capLabel{
+  min-height:0;
+  margin-top:0;
+  line-height:0;
 }
 
 .balloon{
@@ -533,6 +534,7 @@ body{
   opacity:0.35;
   filter:saturate(0.85);
   transition:opacity 0.2s;
+  padding:8px 8px 16px 8px;
 }
 .secretStage .polaroid.fadedPhoto:hover{
   opacity:0.9;
