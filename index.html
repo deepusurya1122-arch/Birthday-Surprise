@@ -5,10 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A Little Surprise</title>
 <link rel="stylesheet" href="style.css">
+<style id="lockClockStyles">
+  #lockClock{
+    margin:16px auto 20px;
+    padding:12px 16px;
+    width:min(100%, 330px);
+    border-radius:16px;
+    background:rgba(255,255,255,.62);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    box-shadow:0 8px 24px rgba(0,0,0,.10);
+    text-align:center;
+  }
+  #lockClock .clockLabel{
+    font-size:.72rem;
+    font-weight:700;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    opacity:.65;
+  }
+  #currentDateTime{
+    margin-top:4px;
+    font-size:clamp(17px,4.5vw,24px);
+    font-weight:800;
+    color:var(--accent,#ff5e8a);
+  }
+  #unlockCountdown{
+    margin-top:5px;
+    font-size:clamp(11px,2.8vw,14px);
+    line-height:1.35;
+    opacity:.78;
+  }
+</style>
+
 </head>
 <body>
-
-  <audio id="birthdayMusic" preload="auto" loop></audio>
 
   <canvas id="fireworksCanvas"></canvas>
   <canvas id="loveAnimCanvas"></canvas>
@@ -17,6 +48,13 @@
   <div id="gate">
     <h1 id="gateTitle">🔒 This Is Locked</h1>
     <p class="sub" id="gateSubtitle">Enter the 4-digit code to continue</p>
+
+    <div id="lockClock" aria-live="polite">
+      <div class="clockLabel">Current Time</div>
+      <div id="currentDateTime">Loading...</div>
+      <div id="unlockCountdown">Birthday unlocks August 12, 2026 at 12:00 AM</div>
+    </div>
+
     <input type="password" id="passwordInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off">
     <button id="unlockBtn">Unlock</button>
     <div id="errorMsg">Wrong code. Try again 💔</div>
@@ -43,11 +81,7 @@
     <!-- CAKE SECTION: 15 polaroid backdrop photos behind a real cake image, cracker candle on top -->
     <div id="cakeSection">
       <h3 id="cakeSectionTitle">🎂 Make a Wish</h3>
-
-      <!-- Dudu & Bubu: dedicated space above the cake, outside the polaroid stage -->
-      <div class="duduBubuWrap" aria-hidden="true">
-        <img id="bubuDuduGif" src="" alt="" class="duduBubuGif">
-      </div>
+      <p class="hintText" id="photoWallHint" style="margin-bottom:16px;">Click or drag a photo onto any backdrop frame to upload (up to 15)</p>
 
       <div class="streamerRow">
         <div class="tri" style="--c:#ff5e8a"></div>
@@ -110,15 +144,11 @@
   document.getElementById('celebrationTitle').textContent = CONFIG.celebrationTitle;
   document.getElementById('celebrationText').textContent = CONFIG.celebrationText;
   document.getElementById('cakeSectionTitle').textContent = CONFIG.cakeSectionTitle;
+  document.getElementById('photoWallHint').textContent = CONFIG.photoWallHint;
   document.getElementById('revealBtn').textContent = CONFIG.revealButtonText;
   document.getElementById('revealMessageTitle').textContent = "For " + CONFIG.name;
   document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
   document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
-  document.getElementById('bubuDuduGif').src = CONFIG.bubuDuduGif;
-
-  const birthdayMusic = document.getElementById('birthdayMusic');
-  birthdayMusic.src = CONFIG.birthdayMusic;
-  birthdayMusic.volume = 0.65;
   document.getElementById('cakeImg').addEventListener('load', function(){
     if(mainPage.style.display === 'block') layoutCakeBackdrop();
   });
@@ -135,23 +165,66 @@
   const unlockBtn = document.getElementById('unlockBtn');
   const errorMsg = document.getElementById('errorMsg');
 
+  function updateLockClock(){
+    const clockEl = document.getElementById('currentDateTime');
+    const countdownEl = document.getElementById('unlockCountdown');
+    if(!clockEl) return;
+
+    const now = new Date();
+
+    clockEl.textContent = now.toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+
+    const unlockDate = new Date(CONFIG.targetDate);
+    const diff = unlockDate.getTime() - now.getTime();
+
+    if(countdownEl){
+      if(diff <= 0){
+        countdownEl.textContent = '🎉 Birthday access is unlocked!';
+      }else{
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        countdownEl.textContent =
+          'Public unlock in ' +
+          days + 'd ' +
+          String(hours).padStart(2,'0') + 'h ' +
+          String(minutes).padStart(2,'0') + 'm ' +
+          String(seconds).padStart(2,'0') + 's';
+      }
+    }
+  }
+
+  updateLockClock();
+  setInterval(updateLockClock, 1000);
+
   function tryUnlock(){
     const entered = passwordInput.value.trim();
-    if(entered.length === 4 && entered === CONFIG.password){
+    const now = new Date();
+    const birthdayStart = new Date(CONFIG.targetDate);
+
+    // Owner password (1000) works before and after the birthday.
+    const isOwner = entered === CONFIG.ownerPassword;
+
+    // Public password (1215) works only from Aug 12, 2026 00:00 onward.
+    const publicAccessAllowed =
+      now.getTime() >= birthdayStart.getTime();
+
+    const isPublicUser =
+      entered === CONFIG.password && publicAccessAllowed;
+
+    if(entered.length === 4 && (isOwner || isPublicUser)){
       gate.style.display = 'none';
       mainPage.style.display = 'block';
-
-      // Start birthday music after the successful unlock interaction.
-      const birthdayMusic = document.getElementById('birthdayMusic');
-
-      if(birthdayMusic){
-        birthdayMusic.currentTime = 0;
-
-        birthdayMusic.play().catch(function(error){
-          console.log('Birthday music could not start:', error);
-        });
-      }
-
       startCountdown();
       startFireworksLoop();
       startCandleSparks();
@@ -162,6 +235,12 @@
         requestAnimationFrame(layoutCakeBackdrop);
       });
     } else {
+      if(entered === CONFIG.password && now.getTime() < birthdayStart.getTime()){
+        errorMsg.textContent = 'Public access opens on August 12, 2026 at 12:00 AM 💕';
+      }else{
+        errorMsg.textContent = CONFIG.gateErrorText;
+      }
+
       errorMsg.classList.add('show');
       gate.classList.remove('shake');
       void gate.offsetWidth;
