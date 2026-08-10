@@ -42,184 +42,6 @@ function loadImageIntoSlot(file, img, frame){
   reader.readAsDataURL(file);
 }
 
-
-/* =========================================================================
-   Secret-page enlarged photo viewer
-   ========================================================================= */
-
-function openSecretPhotoViewer(slot){
-
-  if(!slot || !slot.img){
-    return;
-  }
-
-  if(
-    !slot.img.src ||
-    slot.img.style.display === 'none'
-  ){
-    return;
-  }
-
-  let lightbox =
-    document.getElementById(
-      'photoLightbox'
-    );
-
-  /*
-   * Create the viewer only when it is first needed.
-   * This means no extra HTML is required in secret.html.
-   */
-  if(!lightbox){
-
-    lightbox =
-      document.createElement('div');
-
-    lightbox.id =
-      'photoLightbox';
-
-    lightbox.innerHTML = `
-      <div class="lightboxPolaroid">
-        <button
-          type="button"
-          class="lightboxClose"
-          aria-label="Close photo"
-        >×</button>
-
-        <img
-          class="lightboxImage"
-          alt="Enlarged memory"
-        >
-
-        <div class="lightboxCaption">
-          A special memory ❤️
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(
-      lightbox
-    );
-
-    /*
-     * Clicking the dark area closes it.
-     */
-    lightbox.addEventListener(
-      'click',
-      function(e){
-
-        if(
-          e.target === lightbox
-        ){
-          closeSecretPhotoViewer();
-        }
-      }
-    );
-
-    /*
-     * Close button.
-     */
-    const closeBtn =
-      lightbox.querySelector(
-        '.lightboxClose'
-      );
-
-    closeBtn.addEventListener(
-      'click',
-      function(e){
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        closeSecretPhotoViewer();
-      }
-    );
-  }
-
-  const viewerImg =
-    lightbox.querySelector(
-      '.lightboxImage'
-    );
-
-  const caption =
-    lightbox.querySelector(
-      '.lightboxCaption'
-    );
-
-  viewerImg.src =
-    slot.img.src;
-
-  /*
-   * Use the original card label if available.
-   */
-  const originalCaption =
-    slot.card.querySelector(
-      '.capLabel'
-    );
-
-  if(
-    originalCaption &&
-    originalCaption.textContent.trim()
-  ){
-    caption.textContent =
-      originalCaption.textContent;
-  }else{
-    caption.textContent =
-      'A special memory ❤️';
-  }
-
-  lightbox.classList.add(
-    'show'
-  );
-
-  /*
-   * Prevent the secret page from scrolling
-   * while the enlarged photo is open.
-   */
-  document.body.style.overflow =
-    'hidden';
-}
-
-
-function closeSecretPhotoViewer(){
-
-  const lightbox =
-    document.getElementById(
-      'photoLightbox'
-    );
-
-  if(!lightbox){
-    return;
-  }
-
-  lightbox.classList.remove(
-    'show'
-  );
-
-  document.body.style.overflow =
-    '';
-}
-
-
-/*
- * Escape closes the enlarged photo.
- */
-document.addEventListener(
-  'keydown',
-  function(e){
-
-    if(
-      e.key === 'Escape'
-    ){
-      closeSecretPhotoViewer();
-    }
-  }
-);
-
-
-/* =========================================================================
-   Build photo wall
-   ========================================================================= */
-
 function buildPhotoWall(
   containerId,
   count,
@@ -227,151 +49,97 @@ function buildPhotoWall(
   initialSrcs,
   showLabel
 ){
-
   if(showLabel === undefined){
     showLabel = true;
   }
 
   const wall =
-    document.getElementById(
-      containerId
-    );
+    document.getElementById(containerId);
 
-  if(!wall){
-    return [];
-  }
+  if(!wall) return [];
 
   const slots = [];
 
-  for(
-    let i = 0;
-    i < count;
-    i++
-  ){
+  for(let i = 0; i < count; i++){
 
     const rot =
       (
-        Math.random() * 20 -
-        10
+        Math.random() * 20 - 10
       ).toFixed(1);
 
     const card =
-      document.createElement(
-        'div'
-      );
+      document.createElement('div');
 
     card.className =
       'polaroid' +
       (
         extraClass
-          ? ' ' + extraClass
+          ? (' ' + extraClass)
           : ''
       );
 
-    card.dataset.rot =
-      rot;
+    card.dataset.rot = rot;
 
     card.style.transform =
-      'rotate(' +
-      rot +
-      'deg)';
+      'rotate(' + rot + 'deg)';
 
     const frame =
-      document.createElement(
-        'div'
-      );
+      document.createElement('div');
 
-    frame.className =
-      'frame';
+    frame.className = 'frame';
 
     const img =
-      document.createElement(
-        'img'
-      );
+      document.createElement('img');
 
-    img.style.display =
-      'none';
+    img.style.display = 'none';
+    img.loading = 'lazy';
 
-    img.loading =
-      'lazy';
+    img.onerror = function(){
 
-    img.onerror =
-      function(){
+      img.style.display = 'none';
 
-        img.style.display =
-          'none';
+      img.removeAttribute('src');
 
-        img.removeAttribute(
-          'src'
-        );
+      frame.style.background = '';
+    };
 
-        frame.style.background =
-          '';
-      };
-
-    frame.appendChild(
-      img
-    );
+    frame.appendChild(img);
 
     const fileInput =
-      document.createElement(
-        'input'
-      );
+      document.createElement('input');
 
-    fileInput.type =
-      'file';
-
-    fileInput.accept =
-      'image/*';
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
 
     const cap =
-      document.createElement(
-        'div'
-      );
+      document.createElement('div');
 
-    cap.className =
-      'capLabel';
+    cap.className = 'capLabel';
 
     cap.textContent =
       showLabel
-        ? 'Memory #' +
-          (i + 1)
+        ? ('Memory #' + (i + 1))
         : '';
 
-    card.appendChild(
-      frame
-    );
+    card.appendChild(frame);
+    card.appendChild(cap);
+    card.appendChild(fileInput);
 
-    card.appendChild(
-      cap
-    );
+    wall.appendChild(card);
 
-    card.appendChild(
-      fileInput
-    );
-
-    wall.appendChild(
-      card
-    );
-
-    const slot = {
+    slots.push({
       card,
       frame,
       img
-    };
-
-    slots.push(
-      slot
-    );
+    });
 
     /*
-     * Pre-load configured photo.
+     * Pre-load from config.
      */
     if(
       initialSrcs &&
       initialSrcs[i]
     ){
-
       setSlotImage(
         initialSrcs[i],
         img,
@@ -379,77 +147,19 @@ function buildPhotoWall(
       );
     }
 
-
-    /* ================================================================
-       Click behavior
-       ================================================================ */
-
+    /*
+     * Click to upload.
+     */
     card.addEventListener(
       'click',
-      function(e){
-
-        /*
-         * Secret page:
-         * clicking an existing photo opens the enlarged viewer.
-         *
-         * We detect the secret page using the existing
-         * "fadedPhoto" class so birthday-page behavior remains unchanged.
-         */
-        if(
-          extraClass &&
-          extraClass
-            .split(/\s+/)
-            .includes(
-              'fadedPhoto'
-            )
-        ){
-
-          /*
-           * If there is an actual image,
-           * open the enlarged viewer.
-           */
-          if(
-            img.src &&
-            img.style.display !==
-              'none'
-          ){
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            openSecretPhotoViewer(
-              slot
-            );
-
-            return;
-          }
-
-          /*
-           * If there is no image yet,
-           * allow the user to choose one.
-           */
-          fileInput.click();
-
-          return;
-        }
-
-        /*
-         * All other pages retain the original
-         * click-to-upload behavior.
-         */
+      function(){
         fileInput.click();
       }
     );
 
-
-    /* ================================================================
-       File input
-       ================================================================ */
-
     fileInput.addEventListener(
       'change',
       function(e){
-
         loadImageIntoSlot(
           e.target.files[0],
           img,
@@ -458,15 +168,12 @@ function buildPhotoWall(
       }
     );
 
-
-    /* ================================================================
-       Drag over
-       ================================================================ */
-
+    /*
+     * Drag over.
+     */
     card.addEventListener(
       'dragover',
       function(e){
-
         e.preventDefault();
 
         card.classList.add(
@@ -475,26 +182,21 @@ function buildPhotoWall(
       }
     );
 
-
-    /* ================================================================
-       Drag leave
-       ================================================================ */
-
+    /*
+     * Drag leave.
+     */
     card.addEventListener(
       'dragleave',
       function(){
-
         card.classList.remove(
           'dragOver'
         );
       }
     );
 
-
-    /* ================================================================
-       Drop onto individual card
-       ================================================================ */
-
+    /*
+     * Drop onto individual card.
+     */
     card.addEventListener(
       'drop',
       function(e){
@@ -509,7 +211,6 @@ function buildPhotoWall(
           e.dataTransfer.files &&
           e.dataTransfer.files[0]
         ){
-
           loadImageIntoSlot(
             e.dataTransfer.files[0],
             img,
@@ -520,19 +221,15 @@ function buildPhotoWall(
     );
   }
 
-
-  /* ================================================================
-     Multi-file drop onto wall
-     ================================================================ */
-
+  /*
+   * Multi-file drop onto wall.
+   */
   wall.addEventListener(
     'dragover',
     function(e){
-
       e.preventDefault();
     }
   );
-
 
   wall.addEventListener(
     'drop',
@@ -543,39 +240,28 @@ function buildPhotoWall(
       const files =
         Array.from(
           e.dataTransfer.files || []
-        ).filter(
-          function(file){
+        ).filter(function(file){
+          return file.type.startsWith(
+            'image/'
+          );
+        });
 
-            return file.type.startsWith(
-              'image/'
-            );
-          }
-        );
-
-      if(
-        files.length === 0
-      ){
+      if(files.length === 0){
         return;
       }
 
       const emptySlots =
-        slots.filter(
-          function(slot){
-
-            return (
-              slot.img.style.display ===
-              'none'
-            );
-          }
-        );
+        slots.filter(function(slot){
+          return (
+            slot.img.style.display ===
+            'none'
+          );
+        });
 
       files.forEach(
         function(file, idx){
 
-          if(
-            emptySlots[idx]
-          ){
-
+          if(emptySlots[idx]){
             loadImageIntoSlot(
               file,
               emptySlots[idx].img,
@@ -591,96 +277,49 @@ function buildPhotoWall(
 }
 
 
-/* =========================================================================
-   SECRET PAGE
-   Oval layout around the message.
-
-   Responsive card sizing:
-   - Desktop: larger cards
-   - Tablet: medium cards
-   - Phone: cards remain readable
-   ========================================================================= */
-
+/**
+ * Places photos evenly around an oval ring centered on a message element.
+ *
+ * This is used by the secret/message page.
+ *
+ * IMPORTANT:
+ * This function is intentionally unchanged.
+ */
 function scatterOvalAroundMessage(
   slots,
   messageEl,
   opts
 ){
+  opts = opts || {};
 
-  opts =
-    opts || {};
+  const n = slots.length;
 
-  const n =
-    slots.length;
+  if(n === 0) return;
 
-  if(n === 0){
-    return;
-  }
-
-  const viewportW =
-    window.innerWidth;
-
-  const viewportH =
-    window.innerHeight;
-
-  const isPhone =
-    viewportW <= 600;
-
-  const isTablet =
-    viewportW > 600 &&
-    viewportW <= 900;
-
-  /*
-   * Responsive dimensions.
-   */
   const minCardW =
     opts.minCardW != null
       ? opts.minCardW
-      : (
-          isPhone
-            ? 76
-            : isTablet
-              ? 86
-              : 96
-        );
+      : 58;
 
   const maxCardW =
     opts.maxCardW != null
       ? opts.maxCardW
-      : (
-          isPhone
-            ? 94
-            : isTablet
-              ? 112
-              : 132
-        );
+      : 112;
 
   const gapFromMessage =
     opts.gapFromMessage != null
       ? opts.gapFromMessage
-      : (
-          isPhone
-            ? 10
-            : 28
-        );
+      : 28;
 
   const gapBetweenCards =
     opts.gapBetweenCards != null
       ? opts.gapBetweenCards
-      : (
-          isPhone
-            ? 5
-            : 8
-        );
+      : 8;
 
   const sideMargin =
     opts.sideMargin != null
       ? opts.sideMargin
-      : (
-          isPhone
-            ? 4
-            : 8
-        );
+      : 8;
 
   const topMargin =
     opts.topMargin != null
@@ -690,14 +329,9 @@ function scatterOvalAroundMessage(
   const bottomMargin =
     opts.bottomMargin != null
       ? opts.bottomMargin
-      : (
-          isPhone
-            ? 42
-            : 56
-        );
+      : 56;
 
-  const cardAspect =
-    1.3;
+  const cardAspect = 1.3;
 
   const msgRect =
     messageEl.getBoundingClientRect();
@@ -712,23 +346,22 @@ function scatterOvalAroundMessage(
 
   const exclusionRadius =
     Math.sqrt(
-      Math.pow(
-        msgRect.width / 2,
-        2
-      ) +
-      Math.pow(
-        msgRect.height / 2,
-        2
-      )
+      Math.pow(msgRect.width / 2, 2) +
+      Math.pow(msgRect.height / 2, 2)
     );
+
+  const viewportW =
+    window.innerWidth;
+
+  const viewportH =
+    window.innerHeight;
 
   const maxRadiusX =
     Math.max(
       50,
       Math.min(
         centerX,
-        viewportW -
-        centerX
+        viewportW - centerX
       ) -
       sideMargin
     );
@@ -737,8 +370,7 @@ function scatterOvalAroundMessage(
     Math.max(
       50,
       Math.min(
-        centerY -
-        topMargin,
+        centerY - topMargin,
         viewportH -
         bottomMargin -
         centerY
@@ -763,9 +395,7 @@ function scatterOvalAroundMessage(
     const chord =
       2 *
       r *
-      Math.sin(
-        Math.PI / n
-      ) -
+      Math.sin(Math.PI / n) -
       gapBetweenCards;
 
     return (
@@ -783,44 +413,39 @@ function scatterOvalAroundMessage(
       minCardW,
       Math.min(
         maxCardW,
-        cardWidthForRadius(
-          ringR
-        )
+        cardWidthForRadius(ringR)
       )
     );
 
-  /*
-   * On phones, don't let the card become smaller
-   * just because the message takes more space.
-   *
-   * Instead, reduce the ring gap slightly.
-   */
   if(
-    isPhone &&
-    cardW < minCardW
+    cardWidthForRadius(ringR) <
+    minCardW
   ){
+
+    const neededR =
+      (
+        minCardW *
+        Math.sqrt(
+          1 +
+          cardAspect *
+          cardAspect
+        ) +
+        gapBetweenCards
+      ) /
+      (
+        2 *
+        Math.sin(
+          Math.PI / n
+        )
+      );
 
     ringR =
       Math.min(
-        tightMaxRadius,
         Math.max(
           ringR,
-          (
-            minCardW *
-            Math.sqrt(
-              1 +
-              cardAspect *
-              cardAspect
-            ) +
-            gapBetweenCards
-          ) /
-          (
-            2 *
-            Math.sin(
-              Math.PI / n
-            )
-          )
-        )
+          neededR
+        ),
+        tightMaxRadius
       );
 
     cardW =
@@ -836,17 +461,12 @@ function scatterOvalAroundMessage(
   }
 
   const cardH =
-    cardW *
-    cardAspect;
+    cardW * cardAspect;
 
   const frameH =
-    cardW *
-    0.85;
+    cardW * 0.85;
 
-  const stretch =
-    isPhone
-      ? 0.12
-      : 0.25;
+  const stretch = 0.25;
 
   const radiusX =
     ringR +
@@ -906,15 +526,12 @@ function scatterOvalAroundMessage(
         cardW + 'px';
 
       slot.card.style.left =
-        Math.round(x) +
-        'px';
+        Math.round(x) + 'px';
 
       slot.card.style.top =
-        Math.round(y) +
-        'px';
+        Math.round(y) + 'px';
 
       if(slot.frame){
-
         slot.frame.style.height =
           frameH + 'px';
       }
@@ -941,85 +558,49 @@ function scatterOvalAroundMessage(
 }
 
 
-/* =========================================================================
-   SECRET PAGE
-   Responsive grid/side layout.
-   ========================================================================= */
-
+/**
+ * Arranges photos in neat rows around a message element.
+ *
+ * This is used by the secret/message page.
+ *
+ * IMPORTANT:
+ * This function is intentionally unchanged.
+ */
 function layoutPhotosAroundMessage(
   slots,
   messageEl,
   opts
 ){
+  opts = opts || {};
 
-  opts =
-    opts || {};
+  const n = slots.length;
 
-  const n =
-    slots.length;
-
-  if(n === 0){
-    return;
-  }
-
-  const viewportW =
-    window.innerWidth;
-
-  const isPhone =
-    viewportW <= 600;
-
-  const isTablet =
-    viewportW > 600 &&
-    viewportW <= 900;
+  if(n === 0) return;
 
   const minCardW =
     opts.minCardW != null
       ? opts.minCardW
-      : (
-          isPhone
-            ? 76
-            : isTablet
-              ? 86
-              : 96
-        );
+      : 58;
 
   const maxCardW =
     opts.maxCardW != null
       ? opts.maxCardW
-      : (
-          isPhone
-            ? 94
-            : isTablet
-              ? 112
-              : 132
-        );
+      : 112;
 
   const gap =
     opts.gap != null
       ? opts.gap
-      : (
-          isPhone
-            ? 7
-            : 10
-        );
+      : 10;
 
   const gapFromMessage =
     opts.gapFromMessage != null
       ? opts.gapFromMessage
-      : (
-          isPhone
-            ? 10
-            : 16
-        );
+      : 16;
 
   const sideMargin =
     opts.sideMargin != null
       ? opts.sideMargin
-      : (
-          isPhone
-            ? 4
-            : 8
-        );
+      : 8;
 
   const topMargin =
     opts.topMargin != null
@@ -1029,20 +610,12 @@ function layoutPhotosAroundMessage(
   const bottomMargin =
     opts.bottomMargin != null
       ? opts.bottomMargin
-      : (
-          isPhone
-            ? 42
-            : 56
-        );
+      : 56;
 
-  const frameFactor =
-    0.85;
-
-  const chrome =
-    24;
+  const frameFactor = 0.85;
+  const chrome = 24;
 
   function cardHeightFor(w){
-
     return (
       w *
       frameFactor +
@@ -1108,9 +681,7 @@ function layoutPhotosAroundMessage(
   function buildGrid(cardW){
 
     const cardH =
-      cardHeightFor(
-        cardW
-      );
+      cardHeightFor(cardW);
 
     const cells = [];
 
@@ -1118,8 +689,7 @@ function layoutPhotosAroundMessage(
      * Top row.
      */
     if(
-      availableTop >=
-      cardH
+      availableTop >= cardH
     ){
 
       const cols =
@@ -1190,8 +760,7 @@ function layoutPhotosAroundMessage(
      * Bottom row.
      */
     if(
-      availableBottom >=
-      cardH
+      availableBottom >= cardH
     ){
 
       const cols =
@@ -1263,8 +832,7 @@ function layoutPhotosAroundMessage(
      * Left column.
      */
     if(
-      availableLeft >=
-      cardW
+      availableLeft >= cardW
     ){
 
       const rows =
@@ -1336,8 +904,7 @@ function layoutPhotosAroundMessage(
      * Right column.
      */
     if(
-      availableRight >=
-      cardW
+      availableRight >= cardW
     ){
 
       const rows =
@@ -1415,15 +982,10 @@ function layoutPhotosAroundMessage(
     };
   }
 
-  /*
-   * Start at the largest desired size.
-   */
-  let chosen =
-    null;
+  let chosen = null;
 
   for(
-    let w =
-      maxCardW;
+    let w = maxCardW;
     w >= minCardW;
     w -= 2
   ){
@@ -1434,35 +996,23 @@ function layoutPhotosAroundMessage(
     if(
       grid.cells.length >= n
     ){
-
-      chosen =
-        grid;
-
+      chosen = grid;
       break;
     }
   }
 
-  /*
-   * If all cards cannot fit at the preferred
-   * size, use the smallest safe size.
-   */
   if(!chosen){
-
     chosen =
-      buildGrid(
-        minCardW
-      );
+      buildGrid(minCardW);
   }
 
   const cols =
     chosen.cols;
 
-  const byKey =
-    {};
+  const byKey = {};
 
   chosen.cells.forEach(
     function(c){
-
       byKey[
         c.row +
         '_' +
@@ -1471,14 +1021,9 @@ function layoutPhotosAroundMessage(
     }
   );
 
-  const pairs =
-    [];
-
-  const centerlineCells =
-    [];
-
-  const seen =
-    new Set();
+  const pairs = [];
+  const centerlineCells = [];
+  const seen = new Set();
 
   chosen.cells.forEach(
     function(cell){
@@ -1488,9 +1033,7 @@ function layoutPhotosAroundMessage(
         '_' +
         cell.col;
 
-      if(
-        seen.has(key)
-      ){
+      if(seen.has(key)){
         return;
       }
 
@@ -1509,9 +1052,7 @@ function layoutPhotosAroundMessage(
           cell
         );
 
-        seen.add(
-          key
-        );
+        seen.add(key);
 
         return;
       }
@@ -1535,9 +1076,7 @@ function layoutPhotosAroundMessage(
             mirrorCell
           ]);
 
-          seen.add(
-            key
-          );
+          seen.add(key);
 
           seen.add(
             cell.row +
@@ -1551,9 +1090,7 @@ function layoutPhotosAroundMessage(
             cell
           );
 
-          seen.add(
-            key
-          );
+          seen.add(key);
         }
       }
     }
@@ -1566,20 +1103,17 @@ function layoutPhotosAroundMessage(
     ) / 2;
 
   const distFromMsg =
-    function(cell){
-
-      return Math.abs(
+    cell =>
+      Math.abs(
         (
           cell.y +
           cell.h / 2
         ) -
         msgCenterY
       );
-    };
 
   pairs.sort(
-    function(a,b){
-
+    function(a, b){
       return (
         distFromMsg(a[0]) -
         distFromMsg(b[0])
@@ -1588,8 +1122,7 @@ function layoutPhotosAroundMessage(
   );
 
   centerlineCells.sort(
-    function(a,b){
-
+    function(a, b){
       return (
         distFromMsg(a) -
         distFromMsg(b)
@@ -1597,13 +1130,10 @@ function layoutPhotosAroundMessage(
     }
   );
 
-  const placements =
-    [];
+  const placements = [];
 
   const neededPairs =
-    Math.floor(
-      n / 2
-    );
+    Math.floor(n / 2);
 
   for(
     let i = 0;
@@ -1625,8 +1155,7 @@ function layoutPhotosAroundMessage(
     n -
     placements.length;
 
-  let ci =
-    0;
+  let ci = 0;
 
   while(
     remaining > 0 &&
@@ -1635,9 +1164,7 @@ function layoutPhotosAroundMessage(
   ){
 
     placements.push(
-      centerlineCells[
-        ci++
-      ]
+      centerlineCells[ci++]
     );
 
     remaining--;
@@ -1648,8 +1175,7 @@ function layoutPhotosAroundMessage(
 
   while(
     remaining > 0 &&
-    pi <
-    pairs.length
+    pi < pairs.length
   ){
 
     placements.push(
@@ -1658,9 +1184,7 @@ function layoutPhotosAroundMessage(
 
     remaining--;
 
-    if(
-      remaining > 0
-    ){
+    if(remaining > 0){
 
       placements.push(
         pairs[pi][1]
@@ -1673,7 +1197,7 @@ function layoutPhotosAroundMessage(
   }
 
   slots.forEach(
-    function(slot,i){
+    function(slot, i){
 
       const cell =
         placements[i];
@@ -1696,14 +1220,12 @@ function layoutPhotosAroundMessage(
         cell.w + 'px';
 
       slot.card.style.left =
-        Math.round(
-          cell.x
-        ) + 'px';
+        Math.round(cell.x) +
+        'px';
 
       slot.card.style.top =
-        Math.round(
-          cell.y
-        ) + 'px';
+        Math.round(cell.y) +
+        'px';
 
       if(slot.frame){
 
@@ -1718,19 +1240,36 @@ function layoutPhotosAroundMessage(
 }
 
 
-/* =========================================================================
-   Birthday page layout
-   ========================================================================= */
-
+/**
+ * Birthday-page backdrop layout.
+ *
+ * THIS is the only layout function changed for the birthday page.
+ *
+ * The old birthday layout used top + bottom + left + right bands.
+ * Because the cake occupies the lower-center area, the bottom band was
+ * very small and caused the shared card size to shrink dramatically.
+ *
+ * New arrangement:
+ *
+ *              TOP
+ *
+ *        LEFT  CAKE  RIGHT
+ *
+ * For 15 photos:
+ *
+ *        5 top
+ *        5 left
+ *        5 right
+ *
+ * The cake exclusion rectangle is still respected.
+ */
 function layoutGridAroundExclusion(
   slots,
   containerEl,
   exclusionRect,
   opts
 ){
-
-  opts =
-    opts || {};
+  opts = opts || {};
 
   const n =
     slots.length;
@@ -1739,6 +1278,9 @@ function layoutGridAroundExclusion(
     return;
   }
 
+  /*
+   * Spacing.
+   */
   const gap =
     opts.gap != null
       ? opts.gap
@@ -1754,6 +1296,9 @@ function layoutGridAroundExclusion(
       ? opts.margin
       : 8;
 
+  /*
+   * Birthday polaroid size.
+   */
   const baseCardW =
     opts.baseCardW != null
       ? opts.baseCardW
@@ -1764,6 +1309,9 @@ function layoutGridAroundExclusion(
       ? opts.minCardW
       : 82;
 
+  /*
+   * Match the polaroid frame proportions.
+   */
   const frameFactor =
     opts.frameFactor != null
       ? opts.frameFactor
@@ -1775,7 +1323,6 @@ function layoutGridAroundExclusion(
       : 24;
 
   function cardHeightFor(w){
-
     return (
       frameFactor *
       w +
@@ -1783,6 +1330,9 @@ function layoutGridAroundExclusion(
     );
   }
 
+  /*
+   * Actual stage dimensions.
+   */
   const cw =
     containerEl.clientWidth;
 
@@ -1796,6 +1346,15 @@ function layoutGridAroundExclusion(
     return;
   }
 
+  /*
+   * ---------------------------------------------------------------
+   * AVAILABLE AREAS
+   * ---------------------------------------------------------------
+   */
+
+  /*
+   * Area above the cake.
+   */
   const topSpace =
     Math.max(
       0,
@@ -1804,6 +1363,9 @@ function layoutGridAroundExclusion(
       gapFromCenter
     );
 
+  /*
+   * Horizontal area beside the cake.
+   */
   const sideW =
     Math.max(
       0,
@@ -1815,12 +1377,26 @@ function layoutGridAroundExclusion(
       gapFromCenter
     );
 
+  /*
+   * Vertical area beside the cake.
+   */
   const sideH =
     Math.max(
       0,
       exclusionRect.h
     );
 
+  /*
+   * ---------------------------------------------------------------
+   * DISTRIBUTE THE PHOTOS
+   * ---------------------------------------------------------------
+   *
+   * With 15:
+   *
+   * top = 5
+   * left = 5
+   * right = 5
+   */
   const topCount =
     Math.ceil(
       n / 3
@@ -1843,8 +1419,7 @@ function layoutGridAroundExclusion(
     {
       name: 'top',
       count: topCount,
-      w: cw -
-        margin * 2,
+      w: cw - margin * 2,
       h: topSpace
     },
     {
@@ -1861,6 +1436,11 @@ function layoutGridAroundExclusion(
     }
   ];
 
+  /*
+   * ---------------------------------------------------------------
+   * DETERMINE THE LARGEST SAFE CARD SIZE
+   * ---------------------------------------------------------------
+   */
   function fitsAt(w){
 
     const h =
@@ -1906,8 +1486,7 @@ function layoutGridAroundExclusion(
           rows * h +
           (
             rows - 1
-          ) *
-          gap;
+          ) * gap;
 
         return (
           requiredHeight <=
@@ -1917,6 +1496,10 @@ function layoutGridAroundExclusion(
     );
   }
 
+  /*
+   * Start with a large polaroid.
+   * Shrink only if the real available space requires it.
+   */
   let cardW =
     baseCardW;
 
@@ -1924,7 +1507,6 @@ function layoutGridAroundExclusion(
     cardW > minCardW &&
     !fitsAt(cardW)
   ){
-
     cardW -= 2;
   }
 
@@ -1934,6 +1516,10 @@ function layoutGridAroundExclusion(
       cardW
     );
 
+  /*
+   * Don't allow a card to become wider than the smallest
+   * usable band on very narrow screens.
+   */
   const largestBandW =
     Math.max.apply(
       null,
@@ -1954,12 +1540,14 @@ function layoutGridAroundExclusion(
     );
 
   const cardH =
-    cardHeightFor(
-      cardW
-    );
+    cardHeightFor(cardW);
 
-  let index =
-    0;
+  /*
+   * ---------------------------------------------------------------
+   * PLACE PHOTOS
+   * ---------------------------------------------------------------
+   */
+  let index = 0;
 
   bands.forEach(
     function(band){
@@ -1973,6 +1561,9 @@ function layoutGridAroundExclusion(
       let boxLeft;
       let boxTop;
 
+      /*
+       * Top photos.
+       */
       if(
         band.name === 'top'
       ){
@@ -1982,8 +1573,12 @@ function layoutGridAroundExclusion(
 
         boxTop =
           margin;
+      }
 
-      }else if(
+      /*
+       * Left photos.
+       */
+      else if(
         band.name === 'left'
       ){
 
@@ -1992,8 +1587,12 @@ function layoutGridAroundExclusion(
 
         boxTop =
           exclusionRect.y;
+      }
 
-      }else{
+      /*
+       * Right photos.
+       */
+      else{
 
         boxLeft =
           cw -
@@ -2004,6 +1603,9 @@ function layoutGridAroundExclusion(
           exclusionRect.y;
       }
 
+      /*
+       * Number of columns that fit.
+       */
       const cols =
         Math.max(
           1,
@@ -2019,12 +1621,18 @@ function layoutGridAroundExclusion(
           )
         );
 
+      /*
+       * Number of rows required.
+       */
       const rows =
         Math.ceil(
           band.count /
           cols
         );
 
+      /*
+       * Total occupied width.
+       */
       const usedW =
         cols *
         cardW +
@@ -2033,6 +1641,9 @@ function layoutGridAroundExclusion(
         ) *
         gap;
 
+      /*
+       * Total occupied height.
+       */
       const usedH =
         rows *
         cardH +
@@ -2041,6 +1652,9 @@ function layoutGridAroundExclusion(
         ) *
         gap;
 
+      /*
+       * Center the group in its band.
+       */
       const originX =
         boxLeft +
         Math.max(
@@ -2061,6 +1675,9 @@ function layoutGridAroundExclusion(
           ) / 2
         );
 
+      /*
+       * Position the photos.
+       */
       for(
         let k = 0;
         k < band.count;
@@ -2122,18 +1739,15 @@ function layoutGridAroundExclusion(
 }
 
 
-/* =========================================================================
-   Rectangle overlap helper
-   ========================================================================= */
-
+/**
+ * Checks whether two rectangles overlap.
+ */
 function rectsOverlap(
   a,
   b,
   pad
 ){
-
-  pad =
-    pad || 0;
+  pad = pad || 0;
 
   return !(
     a.x +
@@ -2159,10 +1773,12 @@ function rectsOverlap(
 }
 
 
-/* =========================================================================
-   Random scatter helper
-   ========================================================================= */
-
+/**
+ * Randomly scatters already-built polaroid slots inside a stage of size
+ * stageW x stageH.
+ *
+ * This function is retained for the other pages/features.
+ */
 function scatterSlots(
   slots,
   stageW,
@@ -2172,18 +1788,18 @@ function scatterSlots(
   excludeRect
 ){
 
-  const placed =
-    [];
+  const placed = [];
 
-  const maxAttempts =
-    200;
+  const maxAttempts = 200;
 
   slots.forEach(
     function(slot){
 
-      let rect =
-        null;
+      let rect = null;
 
+      /*
+       * Random placement.
+       */
       for(
         let attempt = 0;
         attempt <
@@ -2223,7 +1839,6 @@ function scatterSlots(
         const hitsPlaced =
           placed.some(
             function(p){
-
               return rectsOverlap(
                 candidate,
                 p,
@@ -2249,8 +1864,7 @@ function scatterSlots(
        */
       if(!rect){
 
-        const step =
-          16;
+        const step = 16;
 
         outer:
         for(
@@ -2287,7 +1901,6 @@ function scatterSlots(
             const hitsPlaced =
               placed.some(
                 function(p){
-
                   return rectsOverlap(
                     candidate,
                     p,
@@ -2311,7 +1924,7 @@ function scatterSlots(
       }
 
       /*
-       * Last resort.
+       * Last resort when the stage is genuinely too small.
        */
       if(!rect){
 
@@ -2323,9 +1936,7 @@ function scatterSlots(
         };
       }
 
-      placed.push(
-        rect
-      );
+      placed.push(rect);
 
       slot.card.style.position =
         'absolute';
