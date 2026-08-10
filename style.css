@@ -318,7 +318,7 @@ body{
   position:relative;
   width:100%;
   max-width:1100px;
-  height:min(88vh, 900px);
+  height:min(96vh, 900px);
   margin:10px auto 20px;
 }
 /* backdrop polaroid collage sits behind the cake — width/frame-height are
@@ -536,13 +536,13 @@ body{
 .secretStage .polaroid.fadedPhoto{
   position:fixed;
   z-index:500;
-  opacity:1;
-  filter:none;
-  transition:none;
+  opacity:0.35;
+  filter:saturate(0.85);
+  transition:opacity 0.2s;
   padding:8px 8px 16px 8px;
 }
 .secretStage .polaroid.fadedPhoto:hover{
-  opacity:1;
+  opacity:0.9;
 }
 .secretMessageCard{
   position:fixed;
@@ -583,4 +583,154 @@ body{
 @keyframes shine{
   0%{ background-position:0% center; }
   100%{ background-position:200% center; }
+}
+
+/* ================================================================
+   RESPONSIVE PHOTO-WALL FIX
+   - gives the birthday page a wider stage on desktop
+   - keeps all 15 polaroids visible and readable on tablets/phones
+   - removes the secret-page photo fading
+   - prevents photos from becoming tiny on narrow screens
+   ================================================================ */
+
+/* The birthday collage needs more horizontal room than the old 900px wrapper. */
+#mainPage.pageWrap{
+  max-width:1200px;
+}
+
+#cakeSection{
+  overflow:visible;
+}
+
+.cakeStage{
+  width:100%;
+  max-width:1200px;
+  min-height:680px;
+  height:min(92vh, 900px);
+}
+
+/* Backdrop polaroids: keep them visually substantial. The JS sets the
+   exact width/height/position for the current viewport. */
+.cakeStage .polaroid.backdropPhoto{
+  box-shadow:0 10px 22px rgba(0,0,0,0.22);
+}
+
+/* Secret page: photos must be fully visible, never faded. */
+.secretStage .polaroid.fadedPhoto{
+  opacity:1 !important;
+  filter:none !important;
+  transition:none !important;
+  -webkit-filter:none !important;
+}
+
+.secretStage .polaroid.fadedPhoto:hover{
+  opacity:1 !important;
+}
+
+/* Make the secret-page photos touch-friendly and readable. */
+.secretStage .polaroid{
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+/* Tablet */
+@media (max-width:1100px){
+  body{padding:14px;}
+
+  #mainPage.pageWrap{
+    max-width:100%;
+  }
+
+  .cakeStage{
+    min-height:620px;
+    height:min(90vh, 820px);
+  }
+
+  .cakeForeground{
+    width:min(42vw, 360px);
+  }
+}
+
+/* Phone: use the available width rather than shrinking every photo into
+   tiny thumbnails. The JS layout will arrange the 15 cards around the cake. */
+@media (max-width:700px){
+  body{
+    padding:8px;
+    align-items:flex-start;
+  }
+
+  .pageWrap{
+    width:100%;
+  }
+
+  #mainPage.pageWrap{
+    width:100%;
+    max-width:100%;
+  }
+
+  #cakeSection{
+    padding:14px 8px 26px;
+    border-radius:20px;
+  }
+
+  .cakeStage{
+    width:100%;
+    min-height:760px;
+    height:760px;
+    margin-top:8px;
+  }
+
+  .cakeForeground{
+    width:min(58vw, 300px);
+    min-width:190px;
+    bottom:18px;
+  }
+
+  .cakeNameOverlay{
+    max-width:88vw;
+    font-size:clamp(.78rem,4vw,1rem);
+  }
+
+  .balloon{
+    transform-origin:center bottom;
+  }
+
+  #revealBtn{
+    margin-top:8px;
+    padding:12px 20px;
+  }
+
+  /* Secret message card remains centered and leaves room for photos. */
+  .secretMessageCard{
+    width:min(82vw,420px);
+    padding:22px 18px;
+  }
+
+  .highlightMessage{
+    font-size:clamp(1rem,4.2vw,1.2rem);
+    line-height:1.5;
+  }
+}
+
+/* Very small phones */
+@media (max-width:430px){
+  .cakeStage{
+    min-height:700px;
+    height:700px;
+  }
+
+  .cakeForeground{
+    width:min(56vw,260px);
+    min-width:175px;
+  }
+
+  .cakeNameOverlay{
+    padding:7px 12px;
+    border-radius:14px;
+  }
+
+  .secretMessageCard{
+    width:84vw;
+    padding:18px 14px;
+  }
 }
