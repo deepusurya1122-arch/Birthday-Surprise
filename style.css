@@ -461,8 +461,9 @@ body{
   padding:34px 30px;
   box-shadow:0 15px 35px rgba(0,0,0,0.12);
   color:var(--dark);
-  font-size:1.1rem;
-  line-height:1.6;
+  font-size:clamp(11px, 1.15vw, 15px);
+  line-height:1.4;
+  overflow-wrap:break-word;
   animation:popIn 0.5s ease;
 }
 #messageTitle{
@@ -569,9 +570,10 @@ body{
   margin-bottom:18px;
 }
 .highlightMessage{
-  font-size:1.25rem;
+  font-size:clamp(11px, 1.15vw, 15px);
   font-weight:700;
-  line-height:1.6;
+  line-height:1.4;
+  overflow-wrap:break-word;
   background:linear-gradient(90deg, #ff5e8a, #ffb347, #ff5e8a);
   background-size:200% auto;
   -webkit-background-clip:text;
@@ -707,8 +709,9 @@ body{
   }
 
   .highlightMessage{
-    font-size:clamp(1rem,4.2vw,1.2rem);
-    line-height:1.5;
+    font-size:clamp(11px, 3.2vw, 14px);
+    line-height:1.4;
+    overflow-wrap:break-word;
   }
 }
 

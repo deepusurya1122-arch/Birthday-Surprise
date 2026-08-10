@@ -131,8 +131,21 @@ const CONFIG = {
   secretPageTitle:
     "💌 A Message For You",
 
-  customMessage:
-    "Wishing you many Happy returns of the bujjamma🎉🎂❤️❤️ ilane chala chala birthday inka happy ga cheskovali nuv🧿🧿\nHappy anniversary kanna❤️❤️❤️\nAsalu e 4 years entha fast ga aipoyayo teliyaledu na prathi moment ni netho share cheskunte gani complete feel rakunela aipoyav Bujji\nNak e vishyamina netho chepte chalu nuvve na love na wife na bestfriend ❤️❤️\nNuv na happy place 🥺 ne pakkana undi ninnu chustu undipovalanundi\nSorry kanna navalla chala sarlu edchav 🥺😘😘😘😘. Adi intentionally eppudu cheyanu kanna but anukokunda aipotay bujji but ninnu happy ga unchali ani eppudu anukutu unta\nNe pichodini chala love chestav 🥺🥺 na luck nuv na life loki radam bujji 😘😘\nRoju chala miss autunna bujji\nNuv tension assala teskoku nuv anukunnavanni e year Neku autai 🧿🧿😘😘\nSorry bujji dress time ki rananduku nek salary paddaka em kavalanna konta bujji nuv na bangaru 😘\nDon't ever stop talking to me 🥺 😘😘😘😘😘\nI love you forever ♾️ 😘💕",
+
+  // --- YOUR SECRET MESSAGE ---
+  // Backticks allow the message to contain multiple lines and emojis.
+  customMessage: `Wishing you many Happy returns of the bujjamma🎉🎂❤️❤️ ilane chala chala birthday inka happy ga cheskovali nuv🧿🧿
+  Happy anniversary kanna❤️❤️❤️
+  Asalu e 4 years entha fast ga aipoyayo teliyaledu na prathi moment ni netho share cheskunte gani complete feel rakunela aipoyav Bujji
+  Nak e vishyamina netho chepte chalu nuvve na love na wife na bestfriend ❤️❤️
+  Nuv na happy place 🥺 ne pakkana undi ninnu chustu undipovalanundi
+  Sorry kanna navalla chala sarlu edchav 🥺. Adi intentionally eppudu cheyanu kanna but anukokunda aipotay bujji but ninnu happy ga unchali ani eppudu anukutu unta
+  Ne pichodini chala love chestav 🥺🥺 na luck nuv na life loki radam bujji 😘😘
+  Nuv tension assala teskoku nuv anukunnavanni e year Neku autai 🧿🧿😘😘
+  Sorry bujji dress time ki rananduku nek salary paddaka em kavalanna konta bujji nuv na bangaru 😘
+  Don't ever stop talking to me 🥺 😘😘😘😘😘
+  I love you forever ♾️ 😘💕`,
+
 
   // --- secret page's own photo wall ---
   secretPhotoWallTitle:
@@ -142,6 +155,7 @@ const CONFIG = {
     "Click or drag a photo to upload (up to 15)",
 
 
+  // --- secret photos ---
   // Secret photos are stored in:
   // images/secret/
   revealPhotos: [
