@@ -745,6 +745,11 @@ function rectsOverlap(a, b, pad){
   );
 }
 
+function seededRandom(seed){
+  const x = Math.sin(seed * 9999) * 10000;
+  return x - Math.floor(x);
+}
+
 /**
  * Randomly scatters already-built polaroid slots inside a stage of size
  * stageW x stageH. cardW/cardH are the slot's footprint (used for collision
@@ -755,11 +760,11 @@ function scatterSlots(slots, stageW, stageH, cardW, cardH, excludeRect){
   const placed = [];
   const maxAttempts = 200;
 
-  slots.forEach(function(slot){
+  slots.forEach(function(slot, slotIdx){
     let rect = null;
     for(let attempt = 0; attempt < maxAttempts; attempt++){
-      const x = Math.random() * (stageW - cardW);
-      const y = Math.random() * (stageH - cardH);
+      const x = seededRandom(slotIdx * 1000 + attempt * 3) * (stageW - cardW);
+      const y = seededRandom(slotIdx * 1000 + attempt * 3 + 1) * (stageH - cardH);
       const candidate = { x, y, w: cardW, h: cardH };
 
       const hitsCake = excludeRect && rectsOverlap(candidate, excludeRect, 38);

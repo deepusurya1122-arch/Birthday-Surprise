@@ -318,7 +318,8 @@ body{
   position:relative;
   width:100%;
   max-width:1100px;
-  height:min(88vh, 900px);
+  height:min(70vh, 640px);
+  min-height:480px;
   margin:10px auto 20px;
 }
 /* backdrop polaroid collage sits behind the cake — width/frame-height are
@@ -368,9 +369,9 @@ body{
 /* real cake photo, centered in the foreground on top of the collage */
 .cakeForeground{
   position:absolute;
-  bottom:20px;
+  top:50%;
   left:50%;
-  transform:translateX(-50%);
+  transform:translate(-50%, -50%);
   width:min(46vw, 380px);
   min-width:220px;
   z-index:10;
