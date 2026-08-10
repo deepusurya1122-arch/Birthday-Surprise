@@ -1,19 +1,28 @@
 /* =========================================================================
    PHOTO WALL
    -------------------------------------------------------------------------
-   Shared photo-wall builder for the Birthday page and Secret page.
+   Shared photo-wall helpers for the Birthday page and Secret Message page.
 
-   Birthday page:
-   - Always creates 15 photo slots.
-   - Automatically sizes the polaroids according to available screen space.
-   - Uses the area around the cake efficiently.
-   - Keeps photos away from the cake, balloons and name banner.
-   - Keeps all 15 photos visible.
-   - Automatically recalculates on resize/orientation change.
+   BIRTHDAY PAGE:
+   - Creates the requested number of polaroid slots.
+   - Keeps photos outside the cake exclusion area.
+   - Does NOT put leftover photos behind the cake.
+   - Uses top / left / right areas first.
+   - Uses the bottom area ONLY when there is genuinely enough room.
+   - Recalculates safely when the browser is resized.
+   - Keeps the photos readable instead of shrinking them unnecessarily.
 
-   Secret page:
-   - Keeps the existing fixed photo layout behavior.
-   - Does NOT intentionally change the secret-page appearance.
+   SECRET PAGE:
+   - Keeps the fixed photo layout behavior.
+   - Uses the existing message-centered layout.
+
+   Public functions:
+     setSlotImage()
+     loadImageIntoSlot()
+     buildPhotoWall()
+     layoutGridAroundExclusion()
+     layoutPhotosAroundMessage()
+     scatterSlots()
    ========================================================================= */
 
 
@@ -22,7 +31,7 @@
    ------------------------------------------------------------------------- */
 
 function setSlotImage(src, img, frame) {
-  if (!src) return;
+  if (!src || !img || !frame) return;
 
   img.src = src;
   img.style.display = 'block';
@@ -31,12 +40,22 @@ function setSlotImage(src, img, frame) {
 
 
 function loadImageIntoSlot(file, img, frame) {
-  if (!file || !file.type || !file.type.startsWith('image/')) return;
+  if (
+    !file ||
+    !file.type ||
+    !file.type.startsWith('image/')
+  ) {
+    return;
+  }
 
   const reader = new FileReader();
 
   reader.onload = function (event) {
-    setSlotImage(event.target.result, img, frame);
+    setSlotImage(
+      event.target.result,
+      img,
+      frame
+    );
   };
 
   reader.readAsDataURL(file);
@@ -58,7 +77,8 @@ function buildPhotoWall(
     showLabel = true;
   }
 
-  const wall = document.getElementById(containerId);
+  const wall =
+    document.getElementById(containerId);
 
   if (!wall) {
     return [];
@@ -69,84 +89,117 @@ function buildPhotoWall(
   for (let i = 0; i < count; i++) {
 
     /*
-      Rotation is generated only once.
-      The layout itself is deterministic so photos do not randomly overlap.
-    */
-    const rotation = (Math.random() * 14 - 7).toFixed(1);
+       Rotation is random only once.
 
-    const card = document.createElement('div');
+       IMPORTANT:
+       Positioning itself is deterministic and collision-safe.
+    */
+    const rotation =
+      (Math.random() * 14 - 7).toFixed(1);
+
+    const card =
+      document.createElement('div');
 
     card.className =
       'polaroid' +
-      (extraClass ? ' ' + extraClass : '');
+      (extraClass
+        ? ' ' + extraClass
+        : '');
 
     card.dataset.rot = rotation;
 
     card.style.transform =
       'rotate(' + rotation + 'deg)';
 
-
-    /* Photo frame */
-
-    const frame = document.createElement('div');
-
-    frame.className = 'frame';
+    card.style.boxSizing =
+      'border-box';
 
 
-    /* Image */
+    /* ---------------- Frame ---------------- */
 
-    const img = document.createElement('img');
+    const frame =
+      document.createElement('div');
 
-    img.style.display = 'none';
-
-    img.alt = 'Memory photo';
-
-    img.draggable = false;
+    frame.className =
+      'frame';
 
 
-    /* Upload input */
+    /* ---------------- Image ---------------- */
 
-    const input = document.createElement('input');
+    const img =
+      document.createElement('img');
 
-    input.type = 'file';
+    img.style.display =
+      'none';
 
-    input.accept = 'image/*';
+    img.loading =
+      'lazy';
 
-    input.style.display = 'none';
+    img.draggable =
+      false;
 
+    img.onerror =
+      function () {
+        img.style.display =
+          'none';
 
-    /* Optional label */
+        img.removeAttribute(
+          'src'
+        );
 
-    let label = null;
-
-    if (showLabel) {
-
-      label = document.createElement('div');
-
-      label.className = 'photoLabel';
-
-      label.textContent =
-        'Click or drag a photo here';
-
-      label.addEventListener('click', function (event) {
-        event.stopPropagation();
-        input.click();
-      });
-
-      card.appendChild(label);
-    }
-
-
-    /* Image frame */
+        frame.style.background =
+          '';
+      };
 
     frame.appendChild(img);
 
+
+    /* ---------------- File input ---------------- */
+
+    const fileInput =
+      document.createElement('input');
+
+    fileInput.type =
+      'file';
+
+    fileInput.accept =
+      'image/*';
+
+
+    /* ---------------- Caption ---------------- */
+
+    const caption =
+      document.createElement('div');
+
+    caption.className =
+      'capLabel';
+
+    caption.textContent =
+      showLabel
+        ? 'Memory #' + (i + 1)
+        : '';
+
+
+    /* ---------------- Assemble ---------------- */
+
     card.appendChild(frame);
+    card.appendChild(caption);
+    card.appendChild(fileInput);
 
-    card.appendChild(input);
+    wall.appendChild(card);
 
 
-    /* Initial image */
+    const slot = {
+      card: card,
+      frame: frame,
+      img: img,
+      fileInput: fileInput
+    };
+
+    slots.push(slot);
+
+
+    /* ---------------- Preloaded image ---------------- */
 
     if (
       initialSrcs &&
@@ -160,48 +213,35 @@ function buildPhotoWall(
     }
 
 
-    /* Click */
+    /* ---------------- Click upload ---------------- */
 
     card.addEventListener(
       'click',
       function (event) {
 
         if (
-          event.target === label ||
-          event.target === input
+          event.target === fileInput
         ) {
           return;
         }
 
-        /*
-          If an image exists, clicking it opens the
-          passport-size viewer.
-        */
-        if (
-          img.style.display !== 'none' &&
-          img.src
-        ) {
-          openPhotoViewer(img.src);
-          return;
-        }
-
-        input.click();
+        fileInput.click();
       }
     );
 
 
-    /* File selection */
+    /* ---------------- File selected ---------------- */
 
-    input.addEventListener(
+    fileInput.addEventListener(
       'change',
-      function () {
+      function (event) {
 
         if (
-          input.files &&
-          input.files[0]
+          event.target.files &&
+          event.target.files[0]
         ) {
           loadImageIntoSlot(
-            input.files[0],
+            event.target.files[0],
             img,
             frame
           );
@@ -210,11 +250,12 @@ function buildPhotoWall(
     );
 
 
-    /* Drag/drop */
+    /* ---------------- Drag over ---------------- */
 
     card.addEventListener(
       'dragover',
       function (event) {
+
         event.preventDefault();
 
         card.classList.add(
@@ -223,6 +264,8 @@ function buildPhotoWall(
       }
     );
 
+
+    /* ---------------- Drag leave ---------------- */
 
     card.addEventListener(
       'dragleave',
@@ -235,6 +278,8 @@ function buildPhotoWall(
     );
 
 
+    /* ---------------- Drop ---------------- */
+
     card.addEventListener(
       'drop',
       function (event) {
@@ -245,188 +290,134 @@ function buildPhotoWall(
           'dragOver'
         );
 
-        const files =
-          event.dataTransfer.files;
-
         if (
-          files &&
-          files.length
+          event.dataTransfer &&
+          event.dataTransfer.files &&
+          event.dataTransfer.files[0]
         ) {
           loadImageIntoSlot(
-            files[0],
+            event.dataTransfer.files[0],
             img,
             frame
           );
         }
       }
     );
-
-
-    wall.appendChild(card);
-
-    slots.push({
-      card: card,
-      frame: frame,
-      img: img,
-      input: input,
-      label: label
-    });
   }
+
+
+  /* -----------------------------------------------------------------------
+     Multi-photo drop
+     ----------------------------------------------------------------------- */
+
+  wall.addEventListener(
+    'dragover',
+    function (event) {
+      event.preventDefault();
+    }
+  );
+
+
+  wall.addEventListener(
+    'drop',
+    function (event) {
+
+      event.preventDefault();
+
+      const files =
+        Array.from(
+          event.dataTransfer.files || []
+        ).filter(
+          function (file) {
+
+            return (
+              file.type &&
+              file.type.startsWith(
+                'image/'
+              )
+            );
+          }
+        );
+
+
+      if (!files.length) {
+        return;
+      }
+
+
+      const emptySlots =
+        slots.filter(
+          function (slot) {
+
+            return (
+              slot.img.style.display ===
+              'none'
+            );
+          }
+        );
+
+
+      files.forEach(
+        function (file, index) {
+
+          if (
+            emptySlots[index]
+          ) {
+
+            loadImageIntoSlot(
+              file,
+              emptySlots[index].img,
+              emptySlots[index].frame
+            );
+          }
+        }
+      );
+    }
+  );
+
 
   return slots;
 }
 
 
-/* -------------------------------------------------------------------------
-   PHOTO VIEWER
-   ------------------------------------------------------------------------- */
-
-function openPhotoViewer(src) {
-
-  /*
-    Don't create multiple viewers.
-  */
-  const oldViewer =
-    document.getElementById(
-      'photoViewer'
-    );
-
-  if (oldViewer) {
-    oldViewer.remove();
-  }
+/* =========================================================================
+   GEOMETRY HELPERS
+   ========================================================================= */
 
 
-  const viewer =
-    document.createElement('div');
+/*
+   Birthday polaroid height.
 
-  viewer.id =
-    'photoViewer';
+   CSS uses:
 
-  viewer.className =
-    'photoViewer';
+       top padding    = 8px
+       bottom padding = 16px
+       frame height   = 0.85 * width
 
+   Therefore:
 
-  const backdrop =
-    document.createElement('div');
+       height = width * 0.85 + 24
+*/
 
-  backdrop.className =
-    'photoViewerBackdrop';
-
-
-  const passport =
-    document.createElement('div');
-
-  passport.className =
-    'passportPolaroid';
-
-
-  const image =
-    document.createElement('img');
-
-  image.src = src;
-
-  image.alt =
-    'Enlarged memory photo';
-
-
-  const close =
-    document.createElement('button');
-
-  close.type =
-    'button';
-
-  close.className =
-    'photoViewerClose';
-
-  close.textContent =
-    '×';
-
-  close.setAttribute(
-    'aria-label',
-    'Close photo'
-  );
-
-
-  passport.appendChild(image);
-
-  passport.appendChild(close);
-
-  viewer.appendChild(
-    backdrop
-  );
-
-  viewer.appendChild(
-    passport
-  );
-
-  document.body.appendChild(
-    viewer
-  );
-
-
-  /*
-    Close when backdrop is tapped.
-  */
-
-  backdrop.addEventListener(
-    'click',
-    function () {
-      viewer.remove();
-    }
-  );
-
-
-  /*
-    Close button.
-  */
-
-  close.addEventListener(
-    'click',
-    function (event) {
-
-      event.stopPropagation();
-
-      viewer.remove();
-    }
-  );
-
-
-  /*
-    Escape key.
-  */
-
-  function escapeHandler(event) {
-
-    if (
-      event.key === 'Escape'
-    ) {
-
-      viewer.remove();
-
-      document.removeEventListener(
-        'keydown',
-        escapeHandler
-      );
-    }
-  }
-
-  document.addEventListener(
-    'keydown',
-    escapeHandler
+function birthdayCardHeight(
+  width
+) {
+  return (
+    width * 0.85 +
+    24
   );
 }
 
 
-/* -------------------------------------------------------------------------
-   GENERIC RECTANGLE HELPERS
-   ------------------------------------------------------------------------- */
+/*
+   Rectangle collision test.
+*/
 
 function rectanglesOverlap(
   a,
   b,
   padding
 ) {
-
   padding =
     padding || 0;
 
@@ -439,1283 +430,740 @@ function rectanglesOverlap(
 }
 
 
-function clamp(
-  value,
-  min,
-  max
+/*
+   Number of columns that can fit.
+*/
+
+function columnsForWidth(
+  availableWidth,
+  cardWidth,
+  gap
 ) {
+  if (
+    availableWidth <= 0 ||
+    cardWidth <= 0
+  ) {
+    return 0;
+  }
 
   return Math.max(
-    min,
-    Math.min(max, value)
+    0,
+    Math.floor(
+      (
+        availableWidth +
+        gap
+      ) /
+      (
+        cardWidth +
+        gap
+      )
+    )
   );
 }
 
 
-/* -------------------------------------------------------------------------
-   CAKE EXCLUSION LAYOUT
-   ------------------------------------------------------------------------- */
+/*
+   Number of rows that can fit.
+*/
 
-function layoutGridAroundExclusion(
-  slots,
-  stage,
+function rowsForHeight(
+  availableHeight,
+  cardWidth,
+  gap
+) {
+  if (
+    availableHeight <= 0 ||
+    cardWidth <= 0
+  ) {
+    return 0;
+  }
+
+  const cardHeight =
+    birthdayCardHeight(
+      cardWidth
+    );
+
+  return Math.max(
+    0,
+    Math.floor(
+      (
+        availableHeight +
+        gap
+      ) /
+      (
+        cardHeight +
+        gap
+      )
+    )
+  );
+}
+
+
+/*
+   Capacity of a rectangular band.
+*/
+
+function bandCapacity(
+  box,
+  cardWidth,
+  gap
+) {
+  if (
+    !box ||
+    box.w <= 0 ||
+    box.h <= 0
+  ) {
+    return 0;
+  }
+
+  const columns =
+    columnsForWidth(
+      box.w,
+      cardWidth,
+      gap
+    );
+
+  const rows =
+    rowsForHeight(
+      box.h,
+      cardWidth,
+      gap
+    );
+
+  return (
+    columns *
+    rows
+  );
+}
+
+
+/* =========================================================================
+   BIRTHDAY PAGE LAYOUT
+   ========================================================================= */
+
+
+/*
+   Creates the four safe areas around the cake.
+
+             TOP
+       +---------------+
+       |               |
+       | L   CAKE    R |
+       |               |
+       +---------------+
+            BOTTOM
+
+   IMPORTANT:
+   Bottom can have zero height.
+
+   If the cake reaches the bottom of the stage, the bottom band is NOT USED.
+*/
+
+function getBirthdayBands(
+  stageWidth,
+  stageHeight,
   exclusion,
-  options
+  margin,
+  gapFromCake
 ) {
 
-  if (
-    !slots ||
-    !slots.length ||
-    !stage
-  ) {
-    return;
-  }
+  return {
+
+    top: {
+      x: margin,
+      y: margin,
+
+      w:
+        Math.max(
+          0,
+          stageWidth -
+          margin * 2
+        ),
+
+      h:
+        Math.max(
+          0,
+          exclusion.y -
+          gapFromCake -
+          margin
+        )
+    },
 
 
-  options =
-    options || {};
+    bottom: {
+      x: margin,
+
+      y:
+        exclusion.y +
+        exclusion.h +
+        gapFromCake,
+
+      w:
+        Math.max(
+          0,
+          stageWidth -
+          margin * 2
+        ),
+
+      h:
+        Math.max(
+          0,
+          stageHeight -
+          (
+            exclusion.y +
+            exclusion.h
+          ) -
+          gapFromCake -
+          margin
+        )
+    },
 
 
-  const stageWidth =
-    stage.clientWidth;
+    left: {
+      x: margin,
 
-  const stageHeight =
-    stage.clientHeight;
+      y:
+        Math.max(
+          margin,
+          exclusion.y
+        ),
+
+      w:
+        Math.max(
+          0,
+          exclusion.x -
+          gapFromCake -
+          margin
+        ),
+
+      h:
+        Math.max(
+          0,
+          exclusion.h
+        )
+    },
 
 
-  if (
-    stageWidth <= 0 ||
-    stageHeight <= 0
-  ) {
-    return;
-  }
+    right: {
+      x:
+        exclusion.x +
+        exclusion.w +
+        gapFromCake,
+
+      y:
+        Math.max(
+          margin,
+          exclusion.y
+        ),
+
+      w:
+        Math.max(
+          0,
+          stageWidth -
+          (
+            exclusion.x +
+            exclusion.w
+          ) -
+          gapFromCake -
+          margin
+        ),
+
+      h:
+        Math.max(
+          0,
+          exclusion.h
+        )
+    }
+
+  };
+}
 
 
-  const baseCardW =
-    options.baseCardW ||
-    150;
+/*
+   Select a safe distribution for all 15 photos.
 
-  const minCardW =
-    options.minCardW ||
-    58;
+   Main desktop preference:
+
+           7 TOP
+
+       4 LEFT   4 RIGHT
+
+   No bottom photos unless the bottom area actually has enough room.
+*/
+
+function chooseBirthdayDistribution(
+  cardWidth,
+  stageWidth,
+  stageHeight,
+  exclusion
+) {
 
   const gap =
-    options.gap ||
-    10;
-
-  const gapFromCenter =
-    options.gapFromCenter ||
-    16;
+    stageWidth < 650
+      ? 8
+      : 10;
 
   const margin =
-    options.margin ||
-    8;
+    stageWidth < 650
+      ? 6
+      : 8;
+
+  const gapFromCake =
+    stageWidth < 650
+      ? 10
+      : 14;
+
+  const totalPhotos =
+    15;
 
 
-  /*
-    We want all photos visible.
-
-    First determine how many columns can fit
-    on the left/right of the cake.
-  */
-
-  const availableLeft =
-    Math.max(
-      0,
-      exclusion.x -
-      gapFromCenter -
-      margin
-    );
-
-  const availableRight =
-    Math.max(
-      0,
-      stageWidth -
-      (exclusion.x +
-       exclusion.w) -
-      gapFromCenter -
-      margin
+  const bands =
+    getBirthdayBands(
+      stageWidth,
+      stageHeight,
+      exclusion,
+      margin,
+      gapFromCake
     );
 
 
-  /*
-    We use several rows around the cake.
+  const capacities = {
 
-    Number of slots is always 15.
-  */
+    top:
+      bandCapacity(
+        bands.top,
+        cardWidth,
+        gap
+      ),
 
-  const leftSlots =
-    Math.floor(
-      availableLeft /
-      (minCardW + gap)
-    );
+    bottom:
+      bandCapacity(
+        bands.bottom,
+        cardWidth,
+        gap
+      ),
 
-  const rightSlots =
-    Math.floor(
-      availableRight /
-      (minCardW + gap)
-    );
+    left:
+      bandCapacity(
+        bands.left,
+        cardWidth,
+        gap
+      ),
 
-
-  /*
-    Calculate a practical number
-    of cards per side.
-  */
-
-  let sideColumns =
-    Math.max(
-      1,
-      Math.min(
-        4,
-        Math.max(
-          leftSlots,
-          rightSlots
-        )
+    right:
+      bandCapacity(
+        bands.right,
+        cardWidth,
+        gap
       )
-    );
+
+  };
 
 
   /*
-    If there isn't enough horizontal room,
-    distribute cards in more rows.
+     Preferred distributions.
+
+     Notice that the first five do NOT use bottom at all.
+     This is what fixes the desktop cake overlap.
   */
 
-  const topSpace =
-    Math.max(
-      0,
-      exclusion.y -
-      margin
-    );
+  const preferred = [
 
-  const bottomSpace =
-    Math.max(
-      0,
-      stageHeight -
-      (exclusion.y +
-       exclusion.h) -
-      margin
-    );
+    {
+      top: 7,
+      left: 4,
+      right: 4,
+      bottom: 0
+    },
 
+    {
+      top: 6,
+      left: 4,
+      right: 5,
+      bottom: 0
+    },
 
-  /*
-    Determine card width based on actual
-    available dimensions.
-  */
+    {
+      top: 6,
+      left: 5,
+      right: 4,
+      bottom: 0
+    },
 
-  let cardW =
-    baseCardW;
+    {
+      top: 8,
+      left: 3,
+      right: 4,
+      bottom: 0
+    },
 
-
-  const horizontalCardLimit =
-    Math.max(
-      minCardW,
-      Math.floor(
-        (
-          Math.max(
-            availableLeft,
-            availableRight
-          ) -
-          Math.max(
-            0,
-            sideColumns - 1
-          ) * gap
-        ) /
-        Math.max(
-          1,
-          sideColumns
-        )
-      )
-    );
+    {
+      top: 8,
+      left: 4,
+      right: 3,
+      bottom: 0
+    },
 
 
-  cardW =
-    Math.min(
-      cardW,
-      horizontalCardLimit
-    );
+    /*
+       Bottom is only considered if it really exists.
+    */
+
+    {
+      top: 5,
+      left: 3,
+      right: 3,
+      bottom: 4
+    },
+
+    {
+      top: 6,
+      left: 3,
+      right: 3,
+      bottom: 3
+    },
+
+    {
+      top: 4,
+      left: 4,
+      right: 4,
+      bottom: 3
+    },
+
+    {
+      top: 5,
+      left: 4,
+      right: 3,
+      bottom: 3
+    },
+
+    {
+      top: 5,
+      left: 3,
+      right: 4,
+      bottom: 3
+    },
+
+    {
+      top: 7,
+      left: 2,
+      right: 3,
+      bottom: 3
+    },
+
+    {
+      top: 7,
+      left: 3,
+      right: 2,
+      bottom: 3
+    }
+
+  ];
 
 
-  /*
-    Passport-ish polaroid ratio.
-  */
-
-  let cardH =
-    Math.round(
-      cardW * 1.23
-    );
-
-
-  /*
-    Determine vertical capacity.
-  */
-
-  const topRows =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          topSpace +
-          gap
-        ) /
-        (
-          cardH +
-          gap
-        )
-      )
-    );
-
-  const bottomRows =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          bottomSpace +
-          gap
-        ) /
-        (
-          cardH +
-          gap
-        )
-      )
-    );
-
-
-  /*
-    Generate candidate positions.
-  */
-
-  const candidates = [];
-
-
-  function addSideCandidates(
-    side
+  function fits(
+    distribution
   ) {
 
-    const xStart =
-      side === 'left'
-        ? margin
-        : exclusion.x +
-          exclusion.w +
-          gapFromCenter;
+    return (
+
+      distribution.top +
+      distribution.left +
+      distribution.right +
+      distribution.bottom ===
+      totalPhotos
+
+      &&
+
+      distribution.top <=
+      capacities.top
+
+      &&
+
+      distribution.left <=
+      capacities.left
+
+      &&
+
+      distribution.right <=
+      capacities.right
+
+      &&
+
+      distribution.bottom <=
+      capacities.bottom
+    );
+  }
 
 
-    const available =
-      side === 'left'
-        ? availableLeft
-        : availableRight;
+  for (
+    let i = 0;
+    i < preferred.length;
+    i++
+  ) {
+
+    if (
+      fits(
+        preferred[i]
+      )
+    ) {
+      return preferred[i];
+    }
+  }
 
 
-    const columns =
-      Math.max(
-        1,
-        Math.min(
-          sideColumns,
-          Math.floor(
-            (
-              available +
-              gap
-            ) /
-            (
-              cardW +
-              gap
-            )
-          )
-        )
-      );
+  /*
+     Automatic search.
 
+     Bottom is completely disabled if it has no real capacity.
+  */
+
+  const bottomUsable =
+    capacities.bottom > 0;
+
+  let best =
+    null;
+
+
+  for (
+    let top = 0;
+    top <= Math.min(
+      totalPhotos,
+      capacities.top
+    );
+    top++
+  ) {
 
     for (
-      let row = 0;
-      row < Math.max(
-        topRows,
-        bottomRows
+      let left = 0;
+      left <= Math.min(
+        totalPhotos - top,
+        capacities.left
       );
-      row++
+      left++
     ) {
 
       for (
-        let col = 0;
-        col < columns;
-        col++
+        let right = 0;
+        right <= Math.min(
+          totalPhotos -
+          top -
+          left,
+          capacities.right
+        );
+        right++
       ) {
 
-        let x =
-          xStart +
-          col *
-          (
-            cardW +
-            gap
-          );
+        const bottom =
+          totalPhotos -
+          top -
+          left -
+          right;
+
 
         if (
-          side === 'right'
+          bottom < 0
         ) {
-
-          x =
-            xStart +
-            col *
-            (
-              cardW +
-              gap
-            );
-
+          continue;
         }
 
 
-        let y;
+        if (
+          !bottomUsable &&
+          bottom > 0
+        ) {
+          continue;
+        }
+
+
+        if (
+          bottom >
+          capacities.bottom
+        ) {
+          continue;
+        }
+
+
+        const usedBands =
+          [
+            top,
+            left,
+            right,
+            bottom
+          ].filter(
+            Boolean
+          ).length;
+
+
+        const sideBalance =
+          Math.abs(
+            left -
+            right
+          );
+
+
+        const verticalBalance =
+          Math.abs(
+            top -
+            bottom
+          );
 
 
         /*
-          Alternate from top and bottom
-          so the photos surround the cake.
+           Strong penalty for using bottom.
         */
 
+        const bottomPenalty =
+          bottom * 20;
+
+
+        const score =
+          sideBalance * 5 +
+          verticalBalance * 2 +
+          bottomPenalty -
+          usedBands * 3;
+
+
         if (
-          row % 2 === 0
+          !best ||
+          score <
+          best.score
         ) {
 
-          const r =
-            Math.floor(
-              row / 2
-            );
-
-          y =
-            margin +
-            r *
-            (
-              cardH +
-              gap
-            );
-
-        } else {
-
-          const r =
-            Math.floor(
-              row / 2
-            );
-
-          y =
-            stageHeight -
-            margin -
-            cardH -
-            r *
-            (
-              cardH +
-              gap
-            );
-
+          best = {
+            top: top,
+            left: left,
+            right: right,
+            bottom: bottom,
+            score: score
+          };
         }
-
-
-        candidates.push({
-          x: x,
-          y: y,
-          w: cardW,
-          h: cardH,
-          side: side
-        });
       }
     }
   }
 
 
-  addSideCandidates(
-    'left'
-  );
+  return (
+    best || {
 
-  addSideCandidates(
-    'right'
-  );
+      top:
+        Math.min(
+          totalPhotos,
+          capacities.top
+        ),
 
+      left: 0,
+      right: 0,
+      bottom: 0,
 
-  /*
-    Add top and bottom positions if
-    horizontal positions aren't enough.
-  */
+      score: Infinity
 
-  function addHorizontalCandidates(
-    position
-  ) {
-
-    const availableWidth =
-      stageWidth -
-      margin * 2;
-
-    const columns =
-      Math.max(
-        1,
-        Math.floor(
-          (
-            availableWidth +
-            gap
-          ) /
-          (
-            cardW +
-            gap
-          )
-        )
-      );
-
-
-    for (
-      let col = 0;
-      col < columns;
-      col++
-    ) {
-
-      const x =
-        margin +
-        col *
-        (
-          cardW +
-          gap
-        );
-
-
-      let y;
-
-      if (
-        position === 'top'
-      ) {
-
-        y =
-          margin;
-
-      } else {
-
-        y =
-          stageHeight -
-          margin -
-          cardH;
-      }
-
-
-      candidates.push({
-        x: x,
-        y: y,
-        w: cardW,
-        h: cardH,
-        side: position
-      });
-    }
-  }
-
-
-  addHorizontalCandidates(
-    'top'
-  );
-
-  addHorizontalCandidates(
-    'bottom'
-  );
-
-
-  /*
-    Filter out candidates that overlap
-    the cake exclusion rectangle.
-  */
-
-  const validCandidates =
-    candidates.filter(
-      function (candidate) {
-
-        return !rectanglesOverlap(
-          candidate,
-          exclusion,
-          gapFromCenter
-        );
-      }
-    );
-
-
-  /*
-    Sort candidates so we get a balanced
-    distribution around the cake.
-  */
-
-  validCandidates.sort(
-    function (a, b) {
-
-      const order = {
-        left: 0,
-        right: 1,
-        top: 2,
-        bottom: 3
-      };
-
-      return (
-        order[a.side] -
-        order[b.side]
-      );
-    }
-  );
-
-
-  /*
-    If there are not enough candidates,
-    progressively reduce card size and
-    retry.
-  */
-
-  if (
-    validCandidates.length <
-    slots.length
-  ) {
-
-    const smaller =
-      Math.max(
-        minCardW,
-        Math.floor(
-          cardW * 0.85
-        )
-      );
-
-
-    if (
-      smaller < cardW
-    ) {
-
-      layoutGridAroundExclusion(
-        slots,
-        stage,
-        exclusion,
-        Object.assign(
-          {},
-          options,
-          {
-            baseCardW:
-              smaller,
-            minCardW:
-              Math.min(
-                minCardW,
-                smaller
-              )
-          }
-        )
-      );
-
-      return;
-    }
-  }
-
-
-  /*
-    Place every slot.
-  */
-
-  slots.forEach(
-    function (
-      slot,
-      index
-    ) {
-
-      const candidate =
-        validCandidates[
-          index %
-          validCandidates.length
-        ];
-
-
-      if (!candidate) {
-        return;
-      }
-
-
-      const card =
-        slot.card;
-
-
-      card.style.position =
-        'absolute';
-
-
-      card.style.width =
-        candidate.w +
-        'px';
-
-
-      card.style.height =
-        candidate.h +
-        'px';
-
-
-      card.style.left =
-        candidate.x +
-        'px';
-
-
-      card.style.top =
-        candidate.y +
-        'px';
-
-
-      card.style.margin =
-        '0';
-
-
-      card.style.zIndex =
-        String(
-          10 + index
-        );
-
-
-      /*
-        Keep the original small rotation
-        without allowing it to create
-        large collisions.
-      */
-
-      const rot =
-        parseFloat(
-          card.dataset.rot ||
-          '0'
-        );
-
-
-      card.style.transform =
-        'rotate(' +
-        clamp(
-          rot,
-          -4,
-          4
-        ) +
-        'deg)';
     }
   );
 }
 
 
-/* -------------------------------------------------------------------------
-   SECRET PAGE PHOTO LAYOUT
-   ------------------------------------------------------------------------- */
+/*
+   Place cards in one safe band.
+*/
 
-function layoutPhotosAroundMessage(
+function placeBirthdayBand(
   slots,
-  messageCard
+  startIndex,
+  count,
+  box,
+  cardWidth,
+  gap
 ) {
 
   if (
-    !slots ||
-    !slots.length ||
-    !messageCard
+    !box ||
+    count <= 0
   ) {
-    return;
+    return startIndex;
   }
-
-
-  /*
-    Secret page intentionally uses
-    viewport coordinates.
-  */
-
-  const viewportWidth =
-    window.innerWidth;
-
-  const viewportHeight =
-    window.innerHeight;
-
-
-  const messageRect =
-    messageCard.getBoundingClientRect();
-
-
-  const margin =
-    Math.max(
-      10,
-      Math.min(
-        22,
-        viewportWidth * 0.018
-      )
-    );
-
-
-  /*
-    Card size changes automatically
-    with the viewport.
-
-    Desktop:
-      larger cards
-
-    Tablet:
-      medium cards
-
-    Phone:
-      smaller cards
-  */
-
-  let cardWidth =
-    clamp(
-      viewportWidth * 0.12,
-      92,
-      155
-    );
-
-
-  if (
-    viewportWidth < 900
-  ) {
-
-    cardWidth =
-      clamp(
-        viewportWidth * 0.18,
-        78,
-        125
-      );
-  }
-
-
-  if (
-    viewportWidth < 600
-  ) {
-
-    cardWidth =
-      clamp(
-        viewportWidth * 0.22,
-        72,
-        105
-      );
-  }
-
-
-  const cardHeight =
-    Math.round(
-      cardWidth *
-      1.23
-    );
-
-
-  /*
-    Create candidate locations around
-    the message card.
-  */
-
-  const candidates = [];
-
-
-  /*
-    Left side.
-  */
-
-  const leftX =
-    margin;
-
-
-  const leftAvailable =
-    Math.max(
-      0,
-      messageRect.left -
-      margin -
-      8
-    );
-
-
-  const leftColumns =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          leftAvailable +
-          8
-        ) /
-        (
-          cardWidth +
-          8
-        )
-      )
-    );
-
-
-  for (
-    let col = 0;
-    col < leftColumns;
-    col++
-  ) {
-
-    const x =
-      leftX +
-      col *
-      (
-        cardWidth +
-        8
-      );
-
-
-    for (
-      let row = 0;
-      row < 4;
-      row++
-    ) {
-
-      const y =
-        margin +
-        row *
-        (
-          cardHeight +
-          10
-        );
-
-
-      candidates.push({
-        x: x,
-        y: y,
-        w: cardWidth,
-        h: cardHeight
-      });
-    }
-  }
-
-
-  /*
-    Right side.
-  */
-
-  const rightStart =
-    messageRect.right +
-    8;
-
-
-  const rightAvailable =
-    viewportWidth -
-    rightStart -
-    margin;
-
-
-  const rightColumns =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          rightAvailable +
-          8
-        ) /
-        (
-          cardWidth +
-          8
-        )
-      )
-    );
-
-
-  for (
-    let col = 0;
-    col < rightColumns;
-    col++
-  ) {
-
-    const x =
-      rightStart +
-      col *
-      (
-        cardWidth +
-        8
-      );
-
-
-    for (
-      let row = 0;
-      row < 4;
-      row++
-    ) {
-
-      const y =
-        margin +
-        row *
-        (
-          cardHeight +
-          10
-        );
-
-
-      candidates.push({
-        x: x,
-        y: y,
-        w: cardWidth,
-        h: cardHeight
-      });
-    }
-  }
-
-
-  /*
-    Top and bottom candidates.
-  */
-
-  const topY =
-    margin;
-
-
-  const bottomY =
-    viewportHeight -
-    margin -
-    cardHeight;
 
 
   const columns =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          viewportWidth +
-          8
-        ) /
-        (
-          cardWidth +
-          8
-        )
-      )
+    columnsForWidth(
+      box.w,
+      cardWidth,
+      gap
     );
-
-
-  for (
-    let col = 0;
-    col < columns;
-    col++
-  ) {
-
-    const x =
-      margin +
-      col *
-      (
-        cardWidth +
-        8
-      );
-
-
-    candidates.push({
-      x: x,
-      y: topY,
-      w: cardWidth,
-      h: cardHeight
-    });
-
-
-    candidates.push({
-      x: x,
-      y: bottomY,
-      w: cardWidth,
-      h: cardHeight
-    });
-  }
-
-
-  /*
-    Remove candidates that overlap
-    the secret message card.
-  */
-
-  const valid =
-    candidates.filter(
-      function (
-        candidate
-      ) {
-
-        return !rectanglesOverlap(
-          candidate,
-          {
-            x:
-              messageRect.left,
-            y:
-              messageRect.top,
-            w:
-              messageRect.width,
-            h:
-              messageRect.height
-          },
-          12
-        );
-      }
-    );
-
-
-  /*
-    Remove candidates that are outside
-    the viewport.
-  */
-
-  const visible =
-    valid.filter(
-      function (
-        candidate
-      ) {
-
-        return (
-          candidate.x >= 0 &&
-          candidate.y >= 0 &&
-          candidate.x +
-            candidate.w <=
-            viewportWidth &&
-          candidate.y +
-            candidate.h <=
-            viewportHeight
-        );
-      }
-    );
-
-
-  /*
-    Use a balanced selection rather than
-    simply filling one side first.
-  */
-
-  let selected = [];
 
 
   if (
-    visible.length >=
-    slots.length
+    columns <= 0
   ) {
-
-    const step =
-      visible.length /
-      slots.length;
-
-
-    for (
-      let i = 0;
-      i < slots.length;
-      i++
-    ) {
-
-      selected.push(
-        visible[
-          Math.floor(
-            i * step
-          )
-        ]
-      );
-    }
-
-  } else {
-
-    selected =
-      visible.slice(
-        0,
-        slots.length
-      );
+    return startIndex;
   }
-
-
-  /*
-    If the viewport is too small for all
-    photos at the current size, shrink
-    them and retry.
-  */
-
-  if (
-    selected.length <
-    slots.length &&
-    cardWidth > 70
-  ) {
-
-    /*
-      Remove temporary positioning.
-      Re-run with a smaller viewport
-      proportional card size.
-    */
-
-    slots.forEach(
-      function (slot) {
-
-        slot.card.style.width =
-          '';
-
-        slot.card.style.height =
-          '';
-      }
-    );
-
-
-    const reduced =
-      Math.max(
-        64,
-        cardWidth * 0.82
-      );
-
-
-    /*
-      Recalculate directly using a
-      reduced width.
-    */
-
-    layoutSecretWithCardSize(
-      slots,
-      messageCard,
-      reduced
-    );
-
-    return;
-  }
-
-
-  /*
-    Place selected cards.
-  */
-
-  slots.forEach(
-    function (
-      slot,
-      index
-    ) {
-
-      const pos =
-        selected[index];
-
-
-      if (!pos) {
-        return;
-      }
-
-
-      const card =
-        slot.card;
-
-
-      card.style.position =
-        'fixed';
-
-
-      card.style.left =
-        pos.x +
-        'px';
-
-
-      card.style.top =
-        pos.y +
-        'px';
-
-
-      card.style.width =
-        pos.w +
-        'px';
-
-
-      card.style.height =
-        pos.h +
-        'px';
-
-
-      card.style.margin =
-        '0';
-
-
-      card.style.zIndex =
-        String(
-          500 + index
-        );
-
-
-      /*
-        Preserve small rotations but
-        prevent excessive overlap.
-      */
-
-      const rot =
-        parseFloat(
-          card.dataset.rot ||
-          '0'
-        );
-
-
-      card.style.transform =
-        'rotate(' +
-        clamp(
-          rot,
-          -4,
-          4
-        ) +
-        'deg)';
-    }
-  );
-}
-
-
-/* -------------------------------------------------------------------------
-   SECRET PAGE SMALL-CARD FALLBACK
-   ------------------------------------------------------------------------- */
-
-function layoutSecretWithCardSize(
-  slots,
-  messageCard,
-  cardWidth
-) {
-
-  const viewportWidth =
-    window.innerWidth;
-
-  const viewportHeight =
-    window.innerHeight;
-
-
-  const messageRect =
-    messageCard.getBoundingClientRect();
-
-
-  const gap =
-    Math.max(
-      5,
-      Math.min(
-        10,
-        viewportWidth * 0.012
-      )
-    );
-
-
-  const margin =
-    Math.max(
-      5,
-      Math.min(
-        12,
-        viewportWidth * 0.015
-      )
-    );
-
-
-  const cardHeight =
-    Math.round(
-      cardWidth *
-      1.23
-    );
-
-
-  const candidates = [];
-
-
-  /*
-    Create a dense grid across the viewport.
-  */
-
-  const columns =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          viewportWidth -
-          margin * 2 +
-          gap
-        ) /
-        (
-          cardWidth +
-          gap
-        )
-      )
-    );
 
 
   const rows =
-    Math.max(
-      1,
-      Math.floor(
-        (
-          viewportHeight -
-          margin * 2 +
-          gap
-        ) /
-        (
-          cardHeight +
-          gap
-        )
-      )
+    Math.ceil(
+      count /
+      columns
     );
+
+
+  const cardHeight =
+    birthdayCardHeight(
+      cardWidth
+    );
+
+
+  const usedWidth =
+    columns *
+    cardWidth +
+    (
+      columns - 1
+    ) *
+    gap;
+
+
+  const usedHeight =
+    rows *
+    cardHeight +
+    (
+      rows - 1
+    ) *
+    gap;
+
+
+  /*
+     Safety check.
+
+     If it doesn't fit, DO NOT place it.
+  */
+
+  if (
+    usedWidth >
+      box.w + 0.5 ||
+    usedHeight >
+      box.h + 0.5
+  ) {
+    return startIndex;
+  }
+
+
+  const originX =
+    box.x +
+    (
+      box.w -
+      usedWidth
+    ) / 2;
+
+
+  const originY =
+    box.y +
+    (
+      box.h -
+      usedHeight
+    ) / 2;
+
+
+  let index =
+    startIndex;
 
 
   for (
@@ -1730,8 +1178,26 @@ function layoutSecretWithCardSize(
       col++
     ) {
 
+      if (
+        index >=
+        startIndex +
+        count
+      ) {
+        break;
+      }
+
+
+      const slot =
+        slots[index];
+
+
+      if (!slot) {
+        continue;
+      }
+
+
       const x =
-        margin +
+        originX +
         col *
         (
           cardWidth +
@@ -1740,7 +1206,7 @@ function layoutSecretWithCardSize(
 
 
       const y =
-        margin +
+        originY +
         row *
         (
           cardHeight +
@@ -1748,253 +1214,1393 @@ function layoutSecretWithCardSize(
         );
 
 
-      const candidate = {
-        x: x,
-        y: y,
-        w: cardWidth,
-        h: cardHeight
-      };
+      slot.card.style.position =
+        'absolute';
+
+      slot.card.style.display =
+        '';
+
+      slot.card.style.width =
+        cardWidth + 'px';
+
+      slot.card.style.left =
+        Math.round(x) +
+        'px';
+
+      slot.card.style.top =
+        Math.round(y) +
+        'px';
+
+      slot.card.style.zIndex =
+        '1';
 
 
       if (
-        !rectanglesOverlap(
-          candidate,
-          {
-            x:
-              messageRect.left,
-            y:
-              messageRect.top,
-            w:
-              messageRect.width,
-            h:
-              messageRect.height
-          },
-          8
-        )
+        slot.frame
       ) {
 
-        candidates.push(
-          candidate
+        slot.frame.style.height =
+          Math.round(
+            cardWidth *
+            0.85
+          ) + 'px';
+      }
+
+
+      index++;
+    }
+  }
+
+
+  return index;
+}
+
+
+/*
+   MAIN BIRTHDAY LAYOUT.
+
+   This is the important replacement for the old
+   layoutGridAroundExclusion().
+*/
+
+function layoutGridAroundExclusion(
+  slots,
+  containerEl,
+  exclusionRect,
+  opts
+) {
+
+  opts =
+    opts || {};
+
+
+  if (
+    !slots ||
+    !slots.length ||
+    !containerEl ||
+    !exclusionRect
+  ) {
+    return;
+  }
+
+
+  const stageWidth =
+    containerEl.clientWidth;
+
+
+  const stageHeight =
+    containerEl.clientHeight;
+
+
+  if (
+    stageWidth <= 0 ||
+    stageHeight <= 0
+  ) {
+    return;
+  }
+
+
+  const requestedBase =
+    Number(
+      opts.baseCardW
+    ) || 150;
+
+
+  const requestedMin =
+    Number(
+      opts.minCardW
+    ) || 76;
+
+
+  /*
+     Desktop:
+       large photos
+
+     Tablet:
+       medium photos
+
+     Phone:
+       smaller but still readable photos
+  */
+
+  let maxCardWidth =
+    requestedBase;
+
+
+  if (
+    stageWidth >= 1200
+  ) {
+
+    maxCardWidth =
+      Math.min(
+        maxCardWidth,
+        150
+      );
+
+  } else if (
+    stageWidth >= 950
+  ) {
+
+    maxCardWidth =
+      Math.min(
+        maxCardWidth,
+        138
+      );
+
+  } else if (
+    stageWidth >= 700
+  ) {
+
+    maxCardWidth =
+      Math.min(
+        maxCardWidth,
+        118
+      );
+
+  } else {
+
+    maxCardWidth =
+      Math.min(
+        maxCardWidth,
+        100
+      );
+  }
+
+
+  let minCardWidth =
+    requestedMin;
+
+
+  if (
+    stageWidth < 500
+  ) {
+
+    minCardWidth =
+      Math.min(
+        minCardWidth,
+        70
+      );
+  }
+
+
+  const gap =
+    stageWidth < 650
+      ? 8
+      : 10;
+
+
+  let selectedWidth =
+    null;
+
+
+  let selectedDistribution =
+    null;
+
+
+  /*
+     Start large.
+
+     Shrink only when necessary.
+  */
+
+  for (
+    let width =
+      Math.round(
+        maxCardWidth
+      );
+
+    width >=
+      minCardWidth;
+
+    width -= 2
+  ) {
+
+    const distribution =
+      chooseBirthdayDistribution(
+        width,
+        stageWidth,
+        stageHeight,
+        exclusionRect
+      );
+
+
+    const total =
+      distribution.top +
+      distribution.left +
+      distribution.right +
+      distribution.bottom;
+
+
+    if (
+      total ===
+      slots.length
+    ) {
+
+      selectedWidth =
+        width;
+
+      selectedDistribution =
+        distribution;
+
+      break;
+    }
+  }
+
+
+  /*
+     Extra-small fallback.
+
+     Still NEVER overlaps the cake.
+  */
+
+  if (
+    selectedWidth ===
+    null
+  ) {
+
+    for (
+      let width =
+        Math.min(
+          maxCardWidth,
+          100
         );
+
+      width >= 54;
+
+      width -= 2
+    ) {
+
+      const distribution =
+        chooseBirthdayDistribution(
+          width,
+          stageWidth,
+          stageHeight,
+          exclusionRect
+        );
+
+
+      const total =
+        distribution.top +
+        distribution.left +
+        distribution.right +
+        distribution.bottom;
+
+
+      if (
+        total ===
+        slots.length
+      ) {
+
+        selectedWidth =
+          width;
+
+        selectedDistribution =
+          distribution;
+
+        break;
       }
     }
   }
 
 
   /*
-    Spread the cards evenly across
-    the available candidates.
+     Extreme case only.
+
+     Never put a card behind the cake.
   */
 
-  const step =
-    candidates.length /
-    Math.max(
-      1,
-      slots.length
+  if (
+    selectedWidth ===
+    null
+  ) {
+
+    selectedWidth =
+      54;
+
+    selectedDistribution =
+      chooseBirthdayDistribution(
+        selectedWidth,
+        stageWidth,
+        stageHeight,
+        exclusionRect
+      );
+  }
+
+
+  /*
+     Reset all old positions.
+  */
+
+  slots.forEach(
+    function (slot) {
+
+      slot.card.style.position =
+        'absolute';
+
+      slot.card.style.display =
+        '';
+
+      slot.card.style.width =
+        selectedWidth + 'px';
+
+      slot.card.style.zIndex =
+        '1';
+    }
+  );
+
+
+  const bands =
+    getBirthdayBands(
+      stageWidth,
+      stageHeight,
+      exclusionRect,
+
+      stageWidth < 650
+        ? 6
+        : 8,
+
+      stageWidth < 650
+        ? 10
+        : 14
     );
 
 
-  slots.forEach(
-    function (
-      slot,
-      index
+  let index =
+    0;
+
+
+  /*
+     TOP
+  */
+
+  index =
+    placeBirthdayBand(
+      slots,
+      index,
+      selectedDistribution.top,
+      bands.top,
+      selectedWidth,
+      gap
+    );
+
+
+  /*
+     LEFT
+  */
+
+  index =
+    placeBirthdayBand(
+      slots,
+      index,
+      selectedDistribution.left,
+      bands.left,
+      selectedWidth,
+      gap
+    );
+
+
+  /*
+     RIGHT
+  */
+
+  index =
+    placeBirthdayBand(
+      slots,
+      index,
+      selectedDistribution.right,
+      bands.right,
+      selectedWidth,
+      gap
+    );
+
+
+  /*
+     BOTTOM.
+
+     This is only reached when chooseBirthdayDistribution()
+     explicitly determined that bottom has enough space.
+  */
+
+  index =
+    placeBirthdayBand(
+      slots,
+      index,
+      selectedDistribution.bottom,
+      bands.bottom,
+      selectedWidth,
+      gap
+    );
+
+
+  /*
+     -----------------------------------------------------------------------
+     FINAL COLLISION SAFETY CHECK
+     -----------------------------------------------------------------------
+
+     Add a few pixels around the cake exclusion zone because rotated
+     polaroids visually extend beyond their mathematical rectangle.
+  */
+
+  const safeExclusion = {
+
+    x:
+      exclusionRect.x - 4,
+
+    y:
+      exclusionRect.y - 4,
+
+    w:
+      exclusionRect.w + 8,
+
+    h:
+      exclusionRect.h + 8
+
+  };
+
+
+  for (
+    let i = 0;
+    i < index;
+    i++
+  ) {
+
+    const slot =
+      slots[i];
+
+
+    const x =
+      parseFloat(
+        slot.card.style.left
+      ) || 0;
+
+
+    const y =
+      parseFloat(
+        slot.card.style.top
+      ) || 0;
+
+
+    const w =
+      parseFloat(
+        slot.card.style.width
+      ) ||
+      selectedWidth;
+
+
+    const h =
+      birthdayCardHeight(
+        w
+      );
+
+
+    /*
+       If anything somehow touches the cake,
+       hide it instead of allowing it behind the cake.
+    */
+
+    if (
+      rectanglesOverlap(
+        {
+          x: x,
+          y: y,
+          w: w,
+          h: h
+        },
+
+        safeExclusion,
+
+        4
+      )
     ) {
 
-      const pos =
-        candidates[
-          Math.floor(
-            index * step
-          )
+      slot.card.style.display =
+        'none';
+    }
+  }
+
+
+  /*
+     Any cards that couldn't safely fit remain hidden.
+
+     On normal desktop/tablet/phone sizes this should not happen.
+  */
+
+  for (
+    let i = index;
+    i < slots.length;
+    i++
+  ) {
+
+    slots[i].card.style.display =
+      'none';
+  }
+}
+
+
+/* =========================================================================
+   SECRET MESSAGE PAGE LAYOUT
+   ========================================================================= */
+
+
+/*
+   Message-centered layout.
+
+   This remains independent from the birthday cake layout.
+*/
+
+function layoutPhotosAroundMessage(
+  slots,
+  messageEl,
+  opts
+) {
+
+  opts =
+    opts || {};
+
+
+  if (
+    !slots ||
+    !slots.length ||
+    !messageEl
+  ) {
+    return;
+  }
+
+
+  const viewportWidth =
+    window.innerWidth;
+
+
+  const viewportHeight =
+    window.innerHeight;
+
+
+  const messageRect =
+    messageEl.getBoundingClientRect();
+
+
+  const gap =
+    opts.gap != null
+      ? opts.gap
+      : 8;
+
+
+  const sideMargin =
+    opts.sideMargin != null
+      ? opts.sideMargin
+      : 8;
+
+
+  const topMargin =
+    opts.topMargin != null
+      ? opts.topMargin
+      : 8;
+
+
+  const bottomMargin =
+    opts.bottomMargin != null
+      ? opts.bottomMargin
+      : 56;
+
+
+  const gapFromMessage =
+    opts.gapFromMessage != null
+      ? opts.gapFromMessage
+      : 12;
+
+
+  let cardWidth =
+    opts.baseCardW != null
+      ? opts.baseCardW
+      : 128;
+
+
+  const minCardWidth =
+    opts.minCardW != null
+      ? opts.minCardW
+      : 56;
+
+
+  const frameFactor =
+    0.85;
+
+
+  const chrome =
+    24;
+
+
+  function cardHeight(
+    width
+  ) {
+
+    return (
+      width *
+      frameFactor +
+      chrome
+    );
+  }
+
+
+  const topSpace =
+    Math.max(
+      0,
+
+      messageRect.top -
+      topMargin -
+      gapFromMessage
+    );
+
+
+  const bottomSpace =
+    Math.max(
+      0,
+
+      viewportHeight -
+      messageRect.bottom -
+      bottomMargin -
+      gapFromMessage
+    );
+
+
+  const sideWidth =
+    Math.max(
+      0,
+
+      (
+        viewportWidth -
+        messageRect.width
+      ) /
+      2 -
+      sideMargin -
+      gapFromMessage
+    );
+
+
+  const sideHeight =
+    Math.max(
+      0,
+      messageRect.height
+    );
+
+
+  const useSides =
+    sideWidth >=
+    minCardWidth +
+    gap * 2;
+
+
+  const bands =
+    useSides
+
+      ? [
+          'top',
+          'bottom',
+          'left',
+          'right'
+        ]
+
+      : [
+          'top',
+          'bottom'
         ];
 
 
-      if (!pos) {
+  const boxes = {
+
+    top: {
+      w:
+        Math.max(
+          0,
+          viewportWidth -
+          sideMargin * 2
+        ),
+
+      h:
+        topSpace
+    },
+
+
+    bottom: {
+      w:
+        Math.max(
+          0,
+          viewportWidth -
+          sideMargin * 2
+        ),
+
+      h:
+        bottomSpace
+    },
+
+
+    left: {
+      w:
+        sideWidth,
+
+      h:
+        sideHeight
+    },
+
+
+    right: {
+      w:
+        sideWidth,
+
+      h:
+        sideHeight
+    }
+
+  };
+
+
+  const counts = {
+
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0
+
+  };
+
+
+  if (
+    useSides
+  ) {
+
+    const side =
+      Math.floor(
+        slots.length / 4
+      );
+
+
+    counts.left =
+      side;
+
+
+    counts.right =
+      side;
+
+
+    const remaining =
+      slots.length -
+      side * 2;
+
+
+    counts.top =
+      Math.ceil(
+        remaining / 2
+      );
+
+
+    counts.bottom =
+      remaining -
+      counts.top;
+
+  } else {
+
+    counts.top =
+      Math.ceil(
+        slots.length / 2
+      );
+
+
+    counts.bottom =
+      slots.length -
+      counts.top;
+  }
+
+
+  function fits(
+    width
+  ) {
+
+    const height =
+      cardHeight(width);
+
+
+    return bands.every(
+      function (band) {
+
+        const box =
+          boxes[band];
+
+
+        const count =
+          counts[band];
+
+
+        if (
+          count === 0
+        ) {
+          return true;
+        }
+
+
+        if (
+          width >
+          box.w
+        ) {
+          return false;
+        }
+
+
+        const columns =
+          Math.max(
+            1,
+
+            Math.floor(
+              (
+                box.w +
+                gap
+              ) /
+              (
+                width +
+                gap
+              )
+            )
+          );
+
+
+        const rows =
+          Math.ceil(
+            count /
+            columns
+          );
+
+
+        return (
+          rows *
+          height +
+
+          (
+            rows - 1
+          ) *
+          gap
+
+          <=
+
+          box.h
+        );
+      }
+    );
+  }
+
+
+  while (
+    cardWidth >
+    minCardWidth &&
+    !fits(cardWidth)
+  ) {
+
+    cardWidth -= 2;
+  }
+
+
+  cardWidth =
+    Math.max(
+      minCardWidth,
+      cardWidth
+    );
+
+
+  let index =
+    0;
+
+
+  bands.forEach(
+    function (band) {
+
+      const count =
+        counts[band];
+
+
+      if (
+        count === 0
+      ) {
         return;
       }
 
 
-      const card =
-        slot.card;
+      const box =
+        boxes[band];
 
 
-      card.style.position =
-        'fixed';
+      const columns =
+        Math.max(
+          1,
 
-
-      card.style.left =
-        pos.x +
-        'px';
-
-
-      card.style.top =
-        pos.y +
-        'px';
-
-
-      card.style.width =
-        pos.w +
-        'px';
-
-
-      card.style.height =
-        pos.h +
-        'px';
-
-
-      card.style.margin =
-        '0';
-
-
-      card.style.zIndex =
-        String(
-          500 + index
+          Math.floor(
+            (
+              box.w +
+              gap
+            ) /
+            (
+              cardWidth +
+              gap
+            )
+          )
         );
 
 
-      const rot =
-        parseFloat(
-          card.dataset.rot ||
-          '0'
+      const rows =
+        Math.ceil(
+          count /
+          columns
         );
 
 
-      card.style.transform =
-        'rotate(' +
-        clamp(
-          rot,
-          -4,
-          4
-        ) +
-        'deg)';
-    }
-  );
-}
-
-
-/* -------------------------------------------------------------------------
-   RESPONSIVE LAYOUT REFRESH
-   ------------------------------------------------------------------------- */
-
-(function () {
-
-  let resizeTimer = null;
-
-
-  function refreshPhotoLayouts() {
-
-    /*
-      Birthday cake backdrop.
-    */
-
-    if (
-      typeof layoutCakeBackdrop ===
-      'function'
-    ) {
-
-      try {
-        layoutCakeBackdrop();
-      } catch (
-        error
-      ) {
-
-        console.warn(
-          'Cake photo layout error:',
-          error
+      const cardHeightValue =
+        cardHeight(
+          cardWidth
         );
-      }
-    }
 
 
-    /*
-      Secret page.
-    */
+      const usedWidth =
+        columns *
+        cardWidth +
 
-    if (
-      typeof revealSlots !==
-      'undefined' &&
-      revealSlots
-    ) {
+        (
+          columns - 1
+        ) *
+        gap;
 
-      const messageCard =
-        document.querySelector(
-          '#secretRevealStage .secretMessageCard'
-        );
+
+      const usedHeight =
+        rows *
+        cardHeightValue +
+
+        (
+          rows - 1
+        ) *
+        gap;
+
+
+      let boxLeft =
+        sideMargin;
+
+
+      let boxTop =
+        topMargin;
 
 
       if (
-        messageCard
+        band ===
+        'top'
       ) {
 
-        try {
+        boxLeft =
+          sideMargin;
 
-          layoutPhotosAroundMessage(
-            revealSlots,
-            messageCard
+        boxTop =
+          topMargin;
+
+      } else if (
+        band ===
+        'bottom'
+      ) {
+
+        boxLeft =
+          sideMargin;
+
+        boxTop =
+          viewportHeight -
+          bottomMargin -
+          box.h;
+
+      } else if (
+        band ===
+        'left'
+      ) {
+
+        boxLeft =
+          sideMargin;
+
+        boxTop =
+          messageRect.top;
+
+      } else if (
+        band ===
+        'right'
+      ) {
+
+        boxLeft =
+          viewportWidth -
+          sideMargin -
+          box.w;
+
+        boxTop =
+          messageRect.top;
+      }
+
+
+      const originX =
+        boxLeft +
+        Math.max(
+          0,
+          (
+            box.w -
+            usedWidth
+          ) / 2
+        );
+
+
+      const originY =
+        boxTop +
+        Math.max(
+          0,
+          (
+            box.h -
+            usedHeight
+          ) / 2
+        );
+
+
+      for (
+        let k = 0;
+        k < count;
+        k++
+      ) {
+
+        const slot =
+          slots[index++];
+
+
+        if (!slot) {
+          continue;
+        }
+
+
+        const column =
+          k %
+          columns;
+
+
+        const row =
+          Math.floor(
+            k /
+            columns
           );
 
-        } catch (
-          error
+
+        slot.card.style.position =
+          'fixed';
+
+
+        slot.card.style.display =
+          '';
+
+
+        slot.card.style.width =
+          cardWidth + 'px';
+
+
+        slot.card.style.left =
+          Math.round(
+            originX +
+            column *
+            (
+              cardWidth +
+              gap
+            )
+          ) + 'px';
+
+
+        slot.card.style.top =
+          Math.round(
+            originY +
+            row *
+            (
+              cardHeightValue +
+              gap
+            )
+          ) + 'px';
+
+
+        slot.card.style.zIndex =
+          '500';
+
+
+        if (
+          slot.frame
         ) {
 
-          console.warn(
-            'Secret photo layout error:',
-            error
-          );
+          slot.frame.style.height =
+            (
+              cardWidth *
+              0.85
+            ) + 'px';
         }
       }
     }
+  );
+
+
+  for (
+    let i = index;
+    i < slots.length;
+    i++
+  ) {
+
+    slots[i].card.style.display =
+      'none';
+  }
+}
+
+
+/* =========================================================================
+   OPTIONAL RANDOM SCATTER HELPER
+   ========================================================================= */
+
+
+/*
+   Used only if another part of the project explicitly calls scatterSlots().
+
+   It is also collision-safe and NEVER uses an exclusion zone as a fallback.
+*/
+
+function scatterSlots(
+  slots,
+  stageWidth,
+  stageHeight,
+  cardWidth,
+  cardHeight,
+  excludeRect
+) {
+
+  if (
+    !slots ||
+    !slots.length
+  ) {
+    return;
   }
 
 
-  window.addEventListener(
-    'resize',
-    function () {
+  const placed =
+    [];
 
-      clearTimeout(
-        resizeTimer
+
+  const maxAttempts =
+    300;
+
+
+  slots.forEach(
+    function (slot) {
+
+      let position =
+        null;
+
+
+      /*
+         Random attempts.
+      */
+
+      for (
+        let attempt = 0;
+        attempt <
+        maxAttempts;
+        attempt++
+      ) {
+
+        const candidate = {
+
+          x:
+            Math.random() *
+            Math.max(
+              1,
+              stageWidth -
+              cardWidth
+            ),
+
+          y:
+            Math.random() *
+            Math.max(
+              1,
+              stageHeight -
+              cardHeight
+            ),
+
+          w:
+            cardWidth,
+
+          h:
+            cardHeight
+        };
+
+
+        const hitsExclude =
+          excludeRect &&
+          rectanglesOverlap(
+            candidate,
+            excludeRect,
+            12
+          );
+
+
+        const hitsPhoto =
+          placed.some(
+            function (existing) {
+
+              return rectanglesOverlap(
+                candidate,
+                existing,
+                8
+              );
+            }
+          );
+
+
+        if (
+          !hitsExclude &&
+          !hitsPhoto
+        ) {
+
+          position =
+            candidate;
+
+          break;
+        }
+      }
+
+
+      /*
+         Deterministic safe scan.
+      */
+
+      if (
+        !position
+      ) {
+
+        outerLoop:
+
+        for (
+          let y = 0;
+
+          y <=
+          stageHeight -
+          cardHeight;
+
+          y += 8
+        ) {
+
+          for (
+            let x = 0;
+
+            x <=
+            stageWidth -
+            cardWidth;
+
+            x += 8
+          ) {
+
+            const candidate = {
+
+              x: x,
+              y: y,
+              w: cardWidth,
+              h: cardHeight
+
+            };
+
+
+            if (
+              excludeRect &&
+              rectanglesOverlap(
+                candidate,
+                excludeRect,
+                12
+              )
+            ) {
+
+              continue;
+            }
+
+
+            if (
+              placed.some(
+                function (existing) {
+
+                  return rectanglesOverlap(
+                    candidate,
+                    existing,
+                    8
+                  );
+                }
+              )
+            ) {
+
+              continue;
+            }
+
+
+            position =
+              candidate;
+
+            break outerLoop;
+          }
+        }
+      }
+
+
+      /*
+         IMPORTANT:
+
+         There is deliberately NO fallback such as:
+
+             x: 4,
+             y: 4
+
+         because that could put a photo over the cake.
+
+         If there is genuinely no safe position,
+         the photo is hidden instead.
+      */
+
+      if (
+        !position
+      ) {
+
+        slot.card.style.display =
+          'none';
+
+        return;
+      }
+
+
+      placed.push(
+        position
       );
 
 
-      resizeTimer =
-        setTimeout(
-          refreshPhotoLayouts,
-          120
-        );
+      slot.card.style.position =
+        'absolute';
+
+
+      slot.card.style.left =
+        Math.round(
+          position.x
+        ) + 'px';
+
+
+      slot.card.style.top =
+        Math.round(
+          position.y
+        ) + 'px';
+
+
+      slot.card.style.width =
+        cardWidth + 'px';
+
+
+      if (
+        slot.frame
+      ) {
+
+        slot.frame.style.height =
+          (
+            cardWidth *
+            0.85
+          ) + 'px';
+      }
     }
   );
-
-
-  window.addEventListener(
-    'orientationchange',
-    function () {
-
-      setTimeout(
-        refreshPhotoLayouts,
-        250
-      );
-    }
-  );
-
-
-  /*
-    Refresh after fonts/images/layout
-    have had a chance to settle.
-  */
-
-  window.addEventListener(
-    'load',
-    function () {
-
-      setTimeout(
-        refreshPhotoLayouts,
-        250
-      );
-
-      setTimeout(
-        refreshPhotoLayouts,
-        800
-      );
-    }
-  );
-
-})();
+}
