@@ -46,8 +46,12 @@ function buildPhotoWall(containerId, count, extraClass, initialSrcs, showLabel){
     const rot = (Math.random() * 20 - 10).toFixed(1);
 
     const card = document.createElement('div');
-    card.className =
-      'polaroid' + (extraClass ? (' ' + extraClass) : '');
+    // Secret-page photos must remain fully visible on every device.
+    // This inline rule overrides any cached/older CSS opacity or filter rule.
+    if(extraClass && extraClass.split(/\s+/).includes('fadedPhoto')){
+      card.style.opacity = '1';
+      card.style.filter = 'none';
+    }
 
     card.dataset.rot = rot;
     card.style.transform = 'rotate(' + rot + 'deg)';
