@@ -318,7 +318,7 @@ body{
   position:relative;
   width:100%;
   max-width:1100px;
-  height:min(96vh, 900px);
+  height:min(88vh, 900px);
   margin:10px auto 20px;
 }
 /* backdrop polaroid collage sits behind the cake — width/frame-height are
@@ -536,13 +536,17 @@ body{
 .secretStage .polaroid.fadedPhoto{
   position:fixed;
   z-index:500;
-  opacity:0.35;
-  filter:saturate(0.85);
-  transition:opacity 0.2s;
+  opacity:1;
+  filter:none;
   padding:8px 8px 16px 8px;
+  cursor:pointer;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
 }
 .secretStage .polaroid.fadedPhoto:hover{
-  opacity:0.9;
+  opacity:1;
+  filter:none;
+  z-index:900;
+  box-shadow:0 12px 28px rgba(0,0,0,0.28);
 }
 .secretMessageCard{
   position:fixed;
@@ -583,4 +587,113 @@ body{
 @keyframes shine{
   0%{ background-position:0% center; }
   100%{ background-position:200% center; }
+}
+
+
+/* ---------- Secret page: enlarged passport-style polaroid viewer ---------- */
+#photoLightbox{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,0.78);
+  backdrop-filter:blur(5px);
+  box-sizing:border-box;
+  cursor:pointer;
+}
+#photoLightbox.show{
+  display:flex;
+}
+#photoLightbox .lightboxPolaroid{
+  position:relative;
+  width:min(82vw, 340px);
+  height:min(78vh, 470px);
+  min-height:360px;
+  background:#fff;
+  padding:12px 12px 48px 12px;
+  box-sizing:border-box;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  transform:rotate(-1.5deg) scale(0.92);
+  animation:photoLightboxIn 0.24s ease forwards;
+  cursor:default;
+}
+#photoLightbox .lightboxFrame{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#f2e9e4;
+}
+#photoLightbox .lightboxImage{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  background:#f2e9e4;
+}
+#photoLightbox .lightboxCaption{
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:12px;
+  height:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#333;
+  font-family:'Segoe Print','Comic Sans MS',cursive;
+  font-size:0.9rem;
+  overflow:hidden;
+}
+#photoLightbox .lightboxClose{
+  position:absolute;
+  top:-13px;
+  right:-13px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:#fff;
+  color:#333;
+  font-size:25px;
+  line-height:1;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,0.3);
+  z-index:2;
+}
+#photoLightbox .lightboxClose:hover{
+  transform:scale(1.08);
+}
+@keyframes photoLightboxIn{
+  from{opacity:0; transform:rotate(-1.5deg) scale(0.88);}
+  to{opacity:1; transform:rotate(-1.5deg) scale(1);}
+}
+
+@media (max-width:600px){
+  #photoLightbox{
+    padding:14px;
+  }
+  #photoLightbox .lightboxPolaroid{
+    width:min(84vw, 300px);
+    height:min(76vh, 430px);
+    min-height:320px;
+    padding:10px 10px 44px 10px;
+  }
+  #photoLightbox .lightboxCaption{
+    left:10px;
+    right:10px;
+    bottom:10px;
+  }
+  #photoLightbox .lightboxClose{
+    top:-10px;
+    right:-10px;
+    width:38px;
+    height:38px;
+    font-size:22px;
+  }
 }
