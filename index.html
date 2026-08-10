@@ -229,7 +229,14 @@
       if(!revealSlots){
         revealSlots = buildPhotoWall('photoWallReveal', 15, 'fadedPhoto', CONFIG.revealPhotos, false);
         const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-        layoutPhotosAroundMessage(revealSlots, messageCard);
+        layoutPhotosGrid(revealSlots, messageCard, {
+          baseCardW: 150,
+          minCardW: 44,
+          gap: 8,
+          margin: 8,
+          gapFromMessage: 12,
+          bottomMargin: 56
+        });
       }
     });
   });
@@ -242,7 +249,14 @@
   window.addEventListener('resize', function(){
     if(revealSlots && document.getElementById('secretReveal').style.display === 'block'){
       const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-      layoutPhotosAroundMessage(revealSlots, messageCard);
+      layoutPhotosGrid(revealSlots, messageCard, {
+          baseCardW: 150,
+          minCardW: 44,
+          gap: 8,
+          margin: 8,
+          gapFromMessage: 12,
+          bottomMargin: 56
+        });
     }
     if(mainPage.style.display === 'block'){
       layoutCakeBackdrop();
