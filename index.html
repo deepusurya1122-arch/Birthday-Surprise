@@ -78,7 +78,7 @@
   <!-- SECRET REVEAL (shown after the button click clears the main page + plays the animation) -->
   <div class="pageWrap" id="secretReveal" style="max-width:960px;">
     <div class="secretStage" id="secretRevealStage">
-      <!-- 15 faded, randomly-scattered polaroids get injected here, kept clear of the message -->
+      <!-- 15 responsive polaroids get injected here, kept clear of the message -->
       <div class="photoWall" id="photoWallReveal" style="position:absolute; inset:0;"></div>
 
       <div class="secretMessageCard">
@@ -204,16 +204,16 @@
     };
 
     layoutGridAroundExclusion(backdropSlots, stage, cakeExcludeRect, {
-      baseCardW: 125,
-      minCardW: 82,
-      gap: 14,
-      gapFromCenter: 18,
+      baseCardW: 140,
+      minCardW: 60,
+      gap: 10,
+      gapFromCenter: 16,
       margin: 8
     });
   }
 
   /* ---------------- Secret Message Button -> clears the page, plays a sparkle/heart
-     animation, then reveals the message surrounded by a faded, scattered photo wall ---------------- */
+     animation, then reveals the message surrounded by a responsive photo wall ---------------- */
   let revealSlots = null; // built lazily on first reveal
 
   document.getElementById('revealBtn').addEventListener('click', function(){
@@ -228,16 +228,16 @@
 
       if(!revealSlots){
         revealSlots = buildPhotoWall('photoWallReveal', 15, 'fadedPhoto', CONFIG.revealPhotos, false);
-        const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-        layoutPhotosGrid(revealSlots, messageCard, {
-          baseCardW: 150,
-          minCardW: 44,
-          gap: 8,
-          margin: 8,
-          gapFromMessage: 12,
-          bottomMargin: 56
-        });
       }
+      const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
+      layoutPhotosGrid(revealSlots, messageCard, {
+        baseCardW: 150,
+        minCardW: 36,
+        gap: 8,
+        margin: 8,
+        gapFromMessage: 10,
+        bottomMargin: 56
+      });
     });
   });
 
@@ -250,13 +250,13 @@
     if(revealSlots && document.getElementById('secretReveal').style.display === 'block'){
       const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
       layoutPhotosGrid(revealSlots, messageCard, {
-          baseCardW: 150,
-          minCardW: 44,
-          gap: 8,
-          margin: 8,
-          gapFromMessage: 12,
-          bottomMargin: 56
-        });
+        baseCardW: 150,
+        minCardW: 36,
+        gap: 8,
+        margin: 8,
+        gapFromMessage: 10,
+        bottomMargin: 56
+      });
     }
     if(mainPage.style.display === 'block'){
       layoutCakeBackdrop();

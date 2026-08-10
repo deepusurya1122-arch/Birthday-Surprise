@@ -318,7 +318,7 @@ body{
   position:relative;
   width:100%;
   max-width:1100px;
-  height:min(96vh, 900px);
+  height:min(88vh, 900px);
   margin:10px auto 20px;
 }
 /* backdrop polaroid collage sits behind the cake — width/frame-height are
@@ -536,13 +536,13 @@ body{
 .secretStage .polaroid.fadedPhoto{
   position:fixed;
   z-index:500;
-  opacity:0.35;
-  filter:saturate(0.85);
-  transition:opacity 0.2s;
+  opacity:1;
+  filter:none;
+  transition:none;
   padding:8px 8px 16px 8px;
 }
 .secretStage .polaroid.fadedPhoto:hover{
-  opacity:0.9;
+  opacity:1;
 }
 .secretMessageCard{
   position:fixed;
