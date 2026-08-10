@@ -461,9 +461,8 @@ body{
   padding:34px 30px;
   box-shadow:0 15px 35px rgba(0,0,0,0.12);
   color:var(--dark);
-  font-size:clamp(11px, 1.15vw, 15px);
-  line-height:1.4;
-  overflow-wrap:break-word;
+  font-size:1.1rem;
+  line-height:1.6;
   animation:popIn 0.5s ease;
 }
 #messageTitle{
@@ -574,13 +573,21 @@ body{
   font-weight:700;
   line-height:1.4;
   overflow-wrap:break-word;
-  background:linear-gradient(90deg, #ff5e8a, #ffb347, #ff5e8a);
-  background-size:200% auto;
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  animation:shine 3.5s linear infinite;
-  text-shadow:0 0 18px rgba(255,94,138,0.25);
+  white-space:pre-wrap;
+
+  /* Emoji-capable font fallbacks */
+  font-family:
+    'Segoe UI',
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
+    'Noto Emoji',
+    sans-serif;
+
+  /* Keep the message readable and allow emojis to render normally. */
+  color:var(--accent);
+
+  text-shadow:0 0 8px rgba(255,94,138,0.20);
 }
 @keyframes shine{
   0%{ background-position:0% center; }
@@ -712,6 +719,7 @@ body{
     font-size:clamp(11px, 3.2vw, 14px);
     line-height:1.4;
     overflow-wrap:break-word;
+    white-space:pre-wrap;
   }
 }
 
