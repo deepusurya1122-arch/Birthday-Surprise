@@ -55,12 +55,12 @@
         <!-- 15 backdrop polaroids get injected here by JS, scattered behind the cake -->
         <div class="photoWall" id="photoWallBackdrop" style="position:absolute; inset:0;"></div>
 
-        <div class="balloon b1"></div>
-        <div class="balloon b2"></div>
-        <div class="balloon b3"></div>
-        <div class="balloon b4"></div>
-
         <div class="cakeForeground">
+          <div class="balloon b1"></div>
+          <div class="balloon b2"></div>
+          <div class="balloon b3"></div>
+          <div class="balloon b4"></div>
+
           <div class="candleWrap">
             <canvas id="sparkCanvas" width="160" height="160"></canvas>
             <div class="candleStick"></div>
@@ -109,9 +109,12 @@
   document.getElementById('revealMessageTitle').textContent = "For " + CONFIG.name;
   document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
   document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
+  document.getElementById('cakeImg').addEventListener('load', function(){
+    if(mainPage.style.display === 'block') layoutCakeBackdrop();
+  });
   const nameOverlayEl = document.getElementById('cakeNameOverlay');
   if(CONFIG.cakeNameOverlay){
-    nameOverlayEl.textContent = CONFIG.name;
+    nameOverlayEl.textContent = CONFIG.cakeOverlayText;
   } else {
     nameOverlayEl.style.display = 'none';
   }
@@ -130,7 +133,12 @@
       startCountdown();
       startFireworksLoop();
       startCandleSparks();
-      layoutCakeBackdrop(); // measurements only work once the page is actually visible
+      // wait a frame so the browser has actually settled the newly-visible
+      // layout (sizes measured too early can be stale, which is how a photo
+      // could end up placed as if the cake were smaller than it really is)
+      requestAnimationFrame(function(){
+        requestAnimationFrame(layoutCakeBackdrop);
+      });
     } else {
       errorMsg.classList.add('show');
       gate.classList.remove('shake');
@@ -186,20 +194,20 @@
 
     const stageRect = stage.getBoundingClientRect();
     const fgRect = cakeForeground.getBoundingClientRect();
-    const topOverhang = 100; // extra room for the candle + name banner above the cake image
+    const topOverhang = 150; // extra room for the candle + name banner (now up to 2 lines) above the cake image
 
     const cakeExcludeRect = {
-      x: (fgRect.left - stageRect.left) - 10,
+      x: (fgRect.left - stageRect.left) - 16,
       y: (fgRect.top - stageRect.top) - topOverhang,
-      w: fgRect.width + 20,
-      h: fgRect.height + topOverhang + 10
+      w: fgRect.width + 32,
+      h: fgRect.height + topOverhang + 18
     };
 
     layoutGridAroundExclusion(backdropSlots, stage, cakeExcludeRect, {
-      baseCardW: 122,
-      minCardW: 52,
-      gap: 8,
-      gapFromCenter: 12,
+      baseCardW: 140,
+      minCardW: 60,
+      gap: 10,
+      gapFromCenter: 16,
       margin: 8
     });
   }
