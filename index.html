@@ -43,6 +43,8 @@
 
   <canvas id="fireworksCanvas"></canvas>
   <canvas id="loveAnimCanvas"></canvas>
+  <audio id="birthdayMusic" preload="auto" loop></audio>
+
 
   <!-- PASSWORD GATE -->
   <div id="gate">
@@ -132,6 +134,32 @@
 <script src="config.js"></script>
 <script src="photowall.js"></script>
 <script>
+  // Birthday music
+  const birthdayMusic = document.getElementById('birthdayMusic');
+  if(birthdayMusic && CONFIG.birthdayMusic){
+    birthdayMusic.src = CONFIG.birthdayMusic;
+    birthdayMusic.preload = 'auto';
+    birthdayMusic.loop = true;
+    birthdayMusic.volume = 0.70;
+    birthdayMusic.load();
+  }
+
+  function startBirthdayMusic(){
+    if(!birthdayMusic || !CONFIG.birthdayMusic) return;
+
+    // The unlock button/Enter key is a user gesture, so the browser
+    // is allowed to start audio here.
+    birthdayMusic.volume = 0.70;
+
+    const playPromise = birthdayMusic.play();
+
+    if(playPromise && typeof playPromise.catch === 'function'){
+      playPromise.catch(function(error){
+        console.warn('Birthday music could not start:', error);
+      });
+    }
+  }
+
   // Apply CONFIG text to the page
   document.getElementById('gateTitle').textContent = CONFIG.gateTitle;
   document.getElementById('gateSubtitle').textContent = CONFIG.gateSubtitle;
@@ -223,6 +251,9 @@
       entered === CONFIG.password && publicAccessAllowed;
 
     if(entered.length === 4 && (isOwner || isPublicUser)){
+      // Start music while still inside the user's unlock click/keypress gesture.
+      startBirthdayMusic();
+
       gate.style.display = 'none';
       mainPage.style.display = 'block';
       startCountdown();
@@ -236,7 +267,7 @@
       });
     } else {
       if(entered === CONFIG.password && now.getTime() < birthdayStart.getTime()){
-        errorMsg.textContent = 'Public access opens on August 12, 2026 at 12:00 AM 💕';
+        errorMsg.textContent = 'wait cheyyu bujjamma ❤️';
       }else{
         errorMsg.textContent = CONFIG.gateErrorText;
       }
