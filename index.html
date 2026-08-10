@@ -78,7 +78,7 @@
   <!-- SECRET REVEAL (shown after the button click clears the main page + plays the animation) -->
   <div class="pageWrap" id="secretReveal" style="max-width:960px;">
     <div class="secretStage" id="secretRevealStage">
-      <!-- 15 responsive polaroids get injected here, kept clear of the message -->
+      <!-- 15 faded, randomly-scattered polaroids get injected here, kept clear of the message -->
       <div class="photoWall" id="photoWallReveal" style="position:absolute; inset:0;"></div>
 
       <div class="secretMessageCard">
@@ -204,8 +204,8 @@
     };
 
     layoutGridAroundExclusion(backdropSlots, stage, cakeExcludeRect, {
-      baseCardW: 140,
-      minCardW: 60,
+      baseCardW: 150,
+      minCardW: 58,
       gap: 10,
       gapFromCenter: 16,
       margin: 8
@@ -213,7 +213,7 @@
   }
 
   /* ---------------- Secret Message Button -> clears the page, plays a sparkle/heart
-     animation, then reveals the message surrounded by a responsive photo wall ---------------- */
+     animation, then reveals the message surrounded by a faded, scattered photo wall ---------------- */
   let revealSlots = null; // built lazily on first reveal
 
   document.getElementById('revealBtn').addEventListener('click', function(){
@@ -228,16 +228,9 @@
 
       if(!revealSlots){
         revealSlots = buildPhotoWall('photoWallReveal', 15, 'fadedPhoto', CONFIG.revealPhotos, false);
+        const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
+        layoutPhotosAroundMessage(revealSlots, messageCard);
       }
-      const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-      layoutPhotosGrid(revealSlots, messageCard, {
-        baseCardW: 150,
-        minCardW: 36,
-        gap: 8,
-        margin: 8,
-        gapFromMessage: 10,
-        bottomMargin: 56
-      });
     });
   });
 
@@ -249,14 +242,7 @@
   window.addEventListener('resize', function(){
     if(revealSlots && document.getElementById('secretReveal').style.display === 'block'){
       const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-      layoutPhotosGrid(revealSlots, messageCard, {
-        baseCardW: 150,
-        minCardW: 36,
-        gap: 8,
-        margin: 8,
-        gapFromMessage: 10,
-        bottomMargin: 56
-      });
+      layoutPhotosAroundMessage(revealSlots, messageCard);
     }
     if(mainPage.style.display === 'block'){
       layoutCakeBackdrop();
