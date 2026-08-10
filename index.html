@@ -1,469 +1,467 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Little Surprise</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Little Surprise</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<canvas id="fireworksCanvas"></canvas>
-<canvas id="loveAnimCanvas"></canvas>
+  <canvas id="fireworksCanvas"></canvas>
+  <canvas id="loveAnimCanvas"></canvas>
 
-<!-- PASSWORD GATE -->
-<div id="gate">
+  <!-- PASSWORD GATE -->
+  <div id="gate">
     <h1 id="gateTitle">🔒 This Is Locked</h1>
     <p class="sub" id="gateSubtitle">Enter the 4-digit code to continue</p>
     <input type="password" id="passwordInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off">
     <button id="unlockBtn">Unlock</button>
     <div id="errorMsg">Wrong code. Try again 💔</div>
     <div id="hint"><span id="hintLabel">Hint:</span> <span id="hintText">You &amp; Me together</span></div>
-</div>
+  </div>
 
-<!-- MAIN PAGE (hidden until unlocked) -->
-<div class="pageWrap" id="mainPage">
+  <!-- MAIN PAGE (hidden until unlocked) -->
+  <div class="pageWrap" id="mainPage">
     <h1 id="bigWish">Happy Birthday 🎂</h1>
     <p id="tagline">Every second brings us closer!</p>
 
     <div class="timer">
-        <div class="timeBlock"><div class="num" id="days">00</div><div class="label">Days</div></div>
-        <div class="timeBlock"><div class="num" id="hours">00</div><div class="label">Hours</div></div>
-        <div class="timeBlock"><div class="num" id="minutes">00</div><div class="label">Minutes</div></div>
-        <div class="timeBlock"><div class="num" id="seconds">00</div><div class="label">Seconds</div></div>
+      <div class="timeBlock"><div class="num" id="days">00</div><div class="label">Days</div></div>
+      <div class="timeBlock"><div class="num" id="hours">00</div><div class="label">Hours</div></div>
+      <div class="timeBlock"><div class="num" id="minutes">00</div><div class="label">Minutes</div></div>
+      <div class="timeBlock"><div class="num" id="seconds">00</div><div class="label">Seconds</div></div>
     </div>
 
     <div id="celebration">
-        <h2 id="celebrationTitle">🎉 Happy Birthday! 🎉</h2>
-        <p id="celebrationText">The day is finally here.</p>
+      <h2 id="celebrationTitle">🎉 Happy Birthday! 🎉</h2>
+      <p id="celebrationText">The day is finally here.</p>
     </div>
 
     <!-- CAKE SECTION: 15 polaroid backdrop photos behind a real cake image, cracker candle on top -->
     <div id="cakeSection">
-        <h3 id="cakeSectionTitle">🎂 Make a Wish</h3>
-        <p class="hintText" id="photoWallHint" style="margin-bottom:16px;">Click or drag a photo onto any backdrop frame to upload (up to 15)</p>
+      <h3 id="cakeSectionTitle">🎂 Make a Wish</h3>
+      <p class="hintText" id="photoWallHint" style="margin-bottom:16px;">Click or drag a photo onto any backdrop frame to upload (up to 15)</p>
 
-        <div class="streamerRow">
-            <div class="tri" style="--c:#ff5e8a"></div>
-            <div class="tri" style="--c:#ffd166; animation-delay:0.3s;"></div>
-            <div class="tri" style="--c:#4cc9f0; animation-delay:0.6s;"></div>
-            <div class="tri" style="--c:#06d6a0; animation-delay:0.9s;"></div>
-            <div class="tri" style="--c:#f72585; animation-delay:1.2s;"></div>
+      <div class="streamerRow">
+        <div class="tri" style="--c:#ff5e8a"></div>
+        <div class="tri" style="--c:#ffd166; animation-delay:0.3s;"></div>
+        <div class="tri" style="--c:#4cc9f0; animation-delay:0.6s;"></div>
+        <div class="tri" style="--c:#06d6a0; animation-delay:0.9s;"></div>
+        <div class="tri" style="--c:#f72585; animation-delay:1.2s;"></div>
+      </div>
+
+      <div class="cakeStage" id="cakeStage">
+        <!-- 15 backdrop polaroids get injected here by JS, scattered behind the cake -->
+        <div class="photoWall" id="photoWallBackdrop" style="position:absolute; inset:0;"></div>
+
+        <div class="cakeForeground">
+          <div class="balloon b1"></div>
+          <div class="balloon b2"></div>
+          <div class="balloon b3"></div>
+          <div class="balloon b4"></div>
+
+          <div class="candleWrap">
+            <canvas id="sparkCanvas" width="160" height="160"></canvas>
+            <div class="candleStick"></div>
+            <div class="flame"></div>
+          </div>
+          <div class="cakeNameOverlay" id="cakeNameOverlay"></div>
+          <img id="cakeImg" src="" alt="Red velvet cake">
         </div>
+      </div>
 
-        <div class="cakeStage" id="cakeStage">
-            <!-- 15 backdrop polaroids get injected here by JS, scattered behind the cake -->
-            <div class="photoWall" id="photoWallBackdrop" style="position:absolute; inset:0;"></div>
-
-            <div class="cakeForeground">
-                <div class="balloon b1"></div>
-                <div class="balloon b2"></div>
-                <div class="balloon b3"></div>
-                <div class="balloon b4"></div>
-
-                <div class="candleWrap">
-                    <canvas id="sparkCanvas" width="160" height="160"></canvas>
-                    <div class="candleStick"></div>
-                    <div class="flame"></div>
-                </div>
-                <div class="cakeNameOverlay" id="cakeNameOverlay"></div>
-                <img id="cakeImg" src="" alt="Red velvet cake">
-            </div>
-        </div>
-
-        <button id="revealBtn">Tap for Secret Message</button>
+      <button id="revealBtn">Tap for Secret Message</button>
     </div>
-</div>
+  </div>
 
-<!-- SECRET REVEAL (shown after the button click clears the main page + plays the animation) -->
-<div class="pageWrap" id="secretReveal" style="max-width:960px;">
+  <!-- SECRET REVEAL (shown after the button click clears the main page + plays the animation) -->
+  <div class="pageWrap" id="secretReveal" style="max-width:960px;">
     <div class="secretStage" id="secretRevealStage">
-        <!-- 15 faded, randomly-scattered polaroids get injected here, kept clear of the message -->
-        <div class="photoWall" id="photoWallReveal" style="position:absolute; inset:0;"></div>
+      <!-- 15 faded, randomly-scattered polaroids get injected here, kept clear of the message -->
+      <div class="photoWall" id="photoWallReveal" style="position:absolute; inset:0;"></div>
 
-        <div class="secretMessageCard">
-            <div id="revealMessageTitle"></div>
-            <p class="highlightMessage" id="revealMessageText"></p>
-        </div>
+      <div class="secretMessageCard">
+        <div id="revealMessageTitle"></div>
+        <p class="highlightMessage" id="revealMessageText"></p>
+      </div>
     </div>
     <button class="backLink" id="backToMainBtn">&larr; Back</button>
-</div>
+  </div>
 
 <script src="config.js"></script>
 <script src="photowall.js"></script>
 <script>
-    // Apply CONFIG text to the page
-    document.getElementById('gateTitle').textContent = CONFIG.gateTitle;
-    document.getElementById('gateSubtitle').textContent = CONFIG.gateSubtitle;
-    document.getElementById('unlockBtn').textContent = CONFIG.unlockButtonText;
-    document.getElementById('errorMsg').textContent = CONFIG.gateErrorText;
-    document.getElementById('hintLabel').textContent = CONFIG.hintLabel;
-    document.getElementById('hintText').textContent = CONFIG.hintText;
-    document.getElementById('bigWish').textContent = CONFIG.bigWishText.replace('{name}', CONFIG.name);
-    document.getElementById('tagline').textContent = CONFIG.tagline;
-    document.getElementById('celebrationTitle').textContent = CONFIG.celebrationTitle;
-    document.getElementById('celebrationText').textContent = CONFIG.celebrationText;
-    document.getElementById('cakeSectionTitle').textContent = CONFIG.cakeSectionTitle;
-    document.getElementById('photoWallHint').textContent = CONFIG.photoWallHint;
-    document.getElementById('revealBtn').textContent = CONFIG.revealButtonText;
-    document.getElementById('revealMessageTitle').textContent = "For " + CONFIG.name;
-    document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
-    document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
-    document.getElementById('cakeImg').addEventListener('load', function(){
-      if(mainPage.style.display === 'block') layoutCakeBackdrop();
-    });
-    const nameOverlayEl = document.getElementById('cakeNameOverlay');
-    if(CONFIG.cakeNameOverlay){
-      nameOverlayEl.textContent = CONFIG.cakeOverlayText;
-    } else {
-      nameOverlayEl.style.display = 'none';
-    }
+  // Apply CONFIG text to the page
+  document.getElementById('gateTitle').textContent = CONFIG.gateTitle;
+  document.getElementById('gateSubtitle').textContent = CONFIG.gateSubtitle;
+  document.getElementById('unlockBtn').textContent = CONFIG.unlockButtonText;
+  document.getElementById('errorMsg').textContent = CONFIG.gateErrorText;
+  document.getElementById('hintLabel').textContent = CONFIG.hintLabel;
+  document.getElementById('hintText').textContent = CONFIG.hintText;
+  document.getElementById('bigWish').textContent = CONFIG.bigWishText.replace('{name}', CONFIG.name);
+  document.getElementById('tagline').textContent = CONFIG.tagline;
+  document.getElementById('celebrationTitle').textContent = CONFIG.celebrationTitle;
+  document.getElementById('celebrationText').textContent = CONFIG.celebrationText;
+  document.getElementById('cakeSectionTitle').textContent = CONFIG.cakeSectionTitle;
+  document.getElementById('photoWallHint').textContent = CONFIG.photoWallHint;
+  document.getElementById('revealBtn').textContent = CONFIG.revealButtonText;
+  document.getElementById('revealMessageTitle').textContent = "For " + CONFIG.name;
+  document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
+  document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
+  document.getElementById('cakeImg').addEventListener('load', function(){
+    if(mainPage.style.display === 'block') layoutCakeBackdrop();
+  });
+  const nameOverlayEl = document.getElementById('cakeNameOverlay');
+  if(CONFIG.cakeNameOverlay){
+    nameOverlayEl.textContent = CONFIG.cakeOverlayText;
+  } else {
+    nameOverlayEl.style.display = 'none';
+  }
 
-    const gate = document.getElementById('gate');
-    const mainPage = document.getElementById('mainPage');
-    const passwordInput = document.getElementById('passwordInput');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const errorMsg = document.getElementById('errorMsg');
+  const gate = document.getElementById('gate');
+  const mainPage = document.getElementById('mainPage');
+  const passwordInput = document.getElementById('passwordInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const errorMsg = document.getElementById('errorMsg');
 
-    function tryUnlock(){
-      const entered = passwordInput.value.trim();
-      if(entered.length === 4 && entered === CONFIG.password){
-        gate.style.display = 'none';
-        mainPage.style.display = 'block';
-        startCountdown();
-        startFireworksLoop();
-        startCandleSparks();
-        // wait a frame so the browser has actually settled the newly-visible
-        // layout (sizes measured too early can be stale, which is how a photo
-        // could end up placed as if the cake were smaller than it really is)
-        requestAnimationFrame(function(){
-          requestAnimationFrame(layoutCakeBackdrop);
-        });
-      } else {
-        errorMsg.classList.add('show');
-        gate.classList.remove('shake');
-        void gate.offsetWidth;
-        gate.classList.add('shake');
-        passwordInput.value = '';
-        passwordInput.focus();
-      }
-    }
-
-    unlockBtn.addEventListener('click', tryUnlock);
-    passwordInput.addEventListener('keydown', function(e){
-      if(e.key === 'Enter'){ tryUnlock(); }
-    });
-    passwordInput.addEventListener('input', function(){
-      passwordInput.value = passwordInput.value.replace(/[^0-9]/g, '');
-      errorMsg.classList.remove('show');
-    });
-
-    function startCountdown(){
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-    }
-    function updateCountdown(){
-      const now = new Date();
-      const diff = CONFIG.targetDate - now;
-      if(diff <= 0){
-        document.querySelector('.timer').style.display = 'none';
-        document.getElementById('celebration').style.display = 'block';
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      document.getElementById('days').textContent = String(days).padStart(2,'0');
-      document.getElementById('hours').textContent = String(hours).padStart(2,'0');
-      document.getElementById('minutes').textContent = String(minutes).padStart(2,'0');
-      document.getElementById('seconds').textContent = String(seconds).padStart(2,'0');
-    }
-
-    /* ---------------- Backdrop photo wall behind the cake ---------------- */
-    // Build 15 slots (pre-loaded from CONFIG.backdropPhotos where provided), then
-    // scatter them within the cake stage once it's actually visible and measurable,
-    // keeping clear of the cake + candle + name banner so nothing overlaps or sits
-    // behind it. Real (not hardcoded) dimensions keep this correct on any device.
-    const backdropSlots = buildPhotoWall('photoWallBackdrop', 15, 'backdropPhoto', CONFIG.backdropPhotos, false);
-
-    function layoutCakeBackdrop(){
-      const stage = document.getElementById('cakeStage');
-      const cakeForeground = document.querySelector('#cakeStage .cakeForeground');
-      if(!stage || !cakeForeground || stage.clientWidth === 0) return; // not visible/measurable yet
-
-      const stageRect = stage.getBoundingClientRect();
-      const fgRect = cakeForeground.getBoundingClientRect();
-      const topOverhang = 150; // extra room for the candle + name banner (now up to 2 lines) above the cake image
-
-      const cakeExcludeRect = {
-        x: (fgRect.left - stageRect.left) - 16,
-        y: (fgRect.top - stageRect.top) - topOverhang,
-        w: fgRect.width + 32,
-        h: fgRect.height + topOverhang + 18
-      };
-
-      const cardW = Math.min(128, Math.max(72, Math.round(stage.clientWidth * 0.105)));
-      const cardH = Math.round(cardW * 0.85 + 24);
-
-      backdropSlots.forEach(function(slot){
-        slot.card.style.width = cardW + 'px';
-        if(slot.frame) slot.frame.style.height = (cardW * 0.85) + 'px';
-      });
-
-      scatterSlots(backdropSlots, stage.clientWidth, stage.clientHeight, cardW, cardH, cakeExcludeRect);
-    }
-
-    /* ---------------- Secret Message Button -> clears the page, plays a sparkle/heart
-       animation, then reveals the message surrounded by a faded, scattered photo wall ---------------- */
-    let revealSlots = null; // built lazily on first reveal
-
-    document.getElementById('revealBtn').addEventListener('click', function(){
-      // 1) clear the current page content
-      mainPage.style.display = 'none';
-
-      // 2) sparkle + love symbols animation across the screen
-      playLoveAnimation(2400, function(){
-        // 3) after the animation, reveal the message + surrounding photos
-        const secretReveal = document.getElementById('secretReveal');
-        secretReveal.style.display = 'block';
-
-        if(!revealSlots){
-          revealSlots = buildPhotoWall('photoWallReveal', 15, 'fadedPhoto', CONFIG.revealPhotos, false);
-          const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
-          layoutPhotosAroundMessage(revealSlots, messageCard);
-        }
-      });
-    });
-
-    document.getElementById('backToMainBtn').addEventListener('click', function(){
-      document.getElementById('secretReveal').style.display = 'none';
+  function tryUnlock(){
+    const entered = passwordInput.value.trim();
+    if(entered.length === 4 && entered === CONFIG.password){
+      gate.style.display = 'none';
       mainPage.style.display = 'block';
-    });
+      startCountdown();
+      startFireworksLoop();
+      startCandleSparks();
+      // wait a frame so the browser has actually settled the newly-visible
+      // layout (sizes measured too early can be stale, which is how a photo
+      // could end up placed as if the cake were smaller than it really is)
+      requestAnimationFrame(function(){
+        requestAnimationFrame(layoutCakeBackdrop);
+      });
+    } else {
+      errorMsg.classList.add('show');
+      gate.classList.remove('shake');
+      void gate.offsetWidth;
+      gate.classList.add('shake');
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  }
 
-    window.addEventListener('resize', function(){
-      if(revealSlots && document.getElementById('secretReveal').style.display === 'block'){
+  unlockBtn.addEventListener('click', tryUnlock);
+  passwordInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ tryUnlock(); }
+  });
+  passwordInput.addEventListener('input', function(){
+    passwordInput.value = passwordInput.value.replace(/[^0-9]/g, '');
+    errorMsg.classList.remove('show');
+  });
+
+  function startCountdown(){
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  }
+  function updateCountdown(){
+    const now = new Date();
+    const diff = CONFIG.targetDate - now;
+    if(diff <= 0){
+      document.querySelector('.timer').style.display = 'none';
+      document.getElementById('celebration').style.display = 'block';
+      return;
+    }
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    document.getElementById('days').textContent = String(days).padStart(2,'0');
+    document.getElementById('hours').textContent = String(hours).padStart(2,'0');
+    document.getElementById('minutes').textContent = String(minutes).padStart(2,'0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2,'0');
+  }
+
+  /* ---------------- Backdrop photo wall behind the cake ---------------- */
+  // Build 15 slots (pre-loaded from CONFIG.backdropPhotos where provided), then
+  // scatter them within the cake stage once it's actually visible and measurable,
+  // keeping clear of the cake + candle + name banner so nothing overlaps or sits
+  // behind it. Real (not hardcoded) dimensions keep this correct on any device.
+  const backdropSlots = buildPhotoWall('photoWallBackdrop', 15, 'backdropPhoto', CONFIG.backdropPhotos, false);
+
+  function layoutCakeBackdrop(){
+    const stage = document.getElementById('cakeStage');
+    const cakeForeground = document.querySelector('#cakeStage .cakeForeground');
+    if(!stage || !cakeForeground || stage.clientWidth === 0) return; // not visible/measurable yet
+
+    const stageRect = stage.getBoundingClientRect();
+    const fgRect = cakeForeground.getBoundingClientRect();
+    const topOverhang = 150; // extra room for the candle + name banner (now up to 2 lines) above the cake image
+
+    const cakeExcludeRect = {
+      x: (fgRect.left - stageRect.left) - 16,
+      y: (fgRect.top - stageRect.top) - topOverhang,
+      w: fgRect.width + 32,
+      h: fgRect.height + topOverhang + 18
+    };
+
+    layoutGridAroundExclusion(backdropSlots, stage, cakeExcludeRect, {
+      baseCardW: 140,
+      minCardW: 60,
+      gap: 10,
+      gapFromCenter: 16,
+      margin: 8
+    });
+  }
+
+  /* ---------------- Secret Message Button -> clears the page, plays a sparkle/heart
+     animation, then reveals the message surrounded by a faded, scattered photo wall ---------------- */
+  let revealSlots = null; // built lazily on first reveal
+
+  document.getElementById('revealBtn').addEventListener('click', function(){
+    // 1) clear the current page content
+    mainPage.style.display = 'none';
+
+    // 2) sparkle + love symbols animation across the screen
+    playLoveAnimation(2400, function(){
+      // 3) after the animation, reveal the message + surrounding photos
+      const secretReveal = document.getElementById('secretReveal');
+      secretReveal.style.display = 'block';
+
+      if(!revealSlots){
+        revealSlots = buildPhotoWall('photoWallReveal', 15, 'fadedPhoto', CONFIG.revealPhotos, false);
         const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
         layoutPhotosAroundMessage(revealSlots, messageCard);
       }
-      if(mainPage.style.display === 'block'){
-        layoutCakeBackdrop();
-      }
     });
+  });
 
-    function playLoveAnimation(durationMs, onDone){
-      const loveCanvas = document.getElementById('loveAnimCanvas');
-      const lctx = loveCanvas.getContext('2d');
-      loveCanvas.width = window.innerWidth;
-      loveCanvas.height = window.innerHeight;
-      loveCanvas.style.display = 'block';
-      loveCanvas.style.opacity = '1';
+  document.getElementById('backToMainBtn').addEventListener('click', function(){
+    document.getElementById('secretReveal').style.display = 'none';
+    mainPage.style.display = 'block';
+  });
 
-      let loveParticles = [];
-      const heartChars = ['💖','💗','💓','💕','❤️'];
-
-      function spawnHeart(){
-        loveParticles.push({
-          type: 'heart',
-          x: Math.random() * loveCanvas.width,
-          y: loveCanvas.height + 30,
-          vy: -(0.6 + Math.random()*1.2),
-          swaySpeed: 0.015 + Math.random()*0.02,
-          swayAmp: 20 + Math.random()*30,
-          swayPhase: Math.random()*Math.PI*2,
-          size: 18 + Math.random()*20,
-          alpha: 1,
-          char: heartChars[Math.floor(Math.random()*heartChars.length)]
-        });
-      }
-      function spawnSparkle(){
-        loveParticles.push({
-          type: 'sparkle',
-          x: Math.random() * loveCanvas.width,
-          y: Math.random() * loveCanvas.height,
-          size: 2 + Math.random()*3,
-          alpha: 0,
-          alphaDir: 1,
-          twinkleSpeed: 0.03 + Math.random()*0.05,
-          color: Math.random() > 0.5 ? '#ffd166' : '#ffffff',
-          life: 0,
-          maxLife: 60 + Math.random()*40
-        });
-      }
-
-      let spawning = true;
-      const heartInterval = setInterval(spawnHeart, 110);
-      const sparkleInterval = setInterval(function(){
-        for(let i=0;i<4;i++) spawnSparkle();
-      }, 60);
-
-      function renderLove(){
-        lctx.clearRect(0,0,loveCanvas.width, loveCanvas.height);
-        loveParticles.forEach(p=>{
-          if(p.type === 'heart'){
-            p.y += p.vy;
-            p.swayPhase += p.swaySpeed;
-            p.x += Math.sin(p.swayPhase) * 0.6;
-            p.alpha -= 0.004;
-            lctx.globalAlpha = Math.max(p.alpha, 0);
-            lctx.font = p.size + 'px sans-serif';
-            lctx.fillText(p.char, p.x, p.y);
-          } else {
-            p.life++;
-            p.alpha += p.alphaDir * p.twinkleSpeed;
-            if(p.alpha >= 1){ p.alpha = 1; p.alphaDir = -1; }
-            if(p.alpha <= 0){ p.alpha = 0; p.alphaDir = 1; }
-            lctx.globalAlpha = Math.max(p.alpha, 0);
-            lctx.fillStyle = p.color;
-            lctx.beginPath();
-            lctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-            lctx.fill();
-          }
-        });
-        lctx.globalAlpha = 1;
-        loveParticles = loveParticles.filter(p =>
-          p.type === 'heart' ? p.alpha > 0 && p.y > -40 : p.life < p.maxLife
-        );
-
-        if(spawning || loveParticles.length > 0){
-          requestAnimationFrame(renderLove);
-        }
-      }
-      renderLove();
-
-      setTimeout(function(){
-        spawning = false;
-        clearInterval(heartInterval);
-        clearInterval(sparkleInterval);
-      }, durationMs);
-
-      setTimeout(function(){
-        loveCanvas.style.transition = 'opacity 0.6s ease';
-        loveCanvas.style.opacity = '0';
-        setTimeout(function(){
-          loveCanvas.style.display = 'none';
-          loveCanvas.style.transition = '';
-          onDone();
-        }, 600);
-      }, durationMs + 300);
+  window.addEventListener('resize', function(){
+    if(revealSlots && document.getElementById('secretReveal').style.display === 'block'){
+      const messageCard = document.querySelector('#secretRevealStage .secretMessageCard');
+      layoutPhotosAroundMessage(revealSlots, messageCard);
     }
-
-    /* ---------------- Firecracker / Fireworks Animation (continuous, full screen) ---------------- */
-    const canvas = document.getElementById('fireworksCanvas');
-    const ctx = canvas.getContext('2d');
-    let fwParticles = [];
-    let fwRunning = false;
-
-    function resizeCanvas(){
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    if(mainPage.style.display === 'block'){
+      layoutCakeBackdrop();
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+  });
 
-    function randomColor(){
-      const colors = ['#ff5e8a','#ffd166','#06d6a0','#4cc9f0','#f72585','#ffffff','#ffbe0b'];
-      return colors[Math.floor(Math.random()*colors.length)];
-    }
-    function spawnBurst(x, y){
-      const count = 40;
-      const color = randomColor();
-      for(let i=0;i<count;i++){
-        const angle = (Math.PI * 2 * i) / count;
-        const speed = 2 + Math.random()*3;
-        fwParticles.push({
-          x: x, y: y,
-          vx: Math.cos(angle)*speed,
-          vy: Math.sin(angle)*speed,
-          alpha: 1,
-          color: color,
-          size: 2 + Math.random()*2
-        });
-      }
-    }
-    function fwRenderLoop(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      fwParticles.forEach(p=>{
-        p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.alpha -= 0.012;
-      });
-      fwParticles = fwParticles.filter(p => p.alpha > 0);
-      fwParticles.forEach(p=>{
-        ctx.globalAlpha = Math.max(p.alpha, 0);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-      requestAnimationFrame(fwRenderLoop);
-    }
-    fwRenderLoop();
+  function playLoveAnimation(durationMs, onDone){
+    const loveCanvas = document.getElementById('loveAnimCanvas');
+    const lctx = loveCanvas.getContext('2d');
+    loveCanvas.width = window.innerWidth;
+    loveCanvas.height = window.innerHeight;
+    loveCanvas.style.display = 'block';
+    loveCanvas.style.opacity = '1';
 
-    function startFireworksLoop(){
-      if(fwRunning) return;
-      fwRunning = true;
-      function scheduleNextRound(){
-        const burstsThisRound = 4 + Math.floor(Math.random()*3);
-        let done = 0;
-        const roundInterval = setInterval(function(){
-          const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
-          const y = Math.random() * canvas.height * 0.4 + canvas.height * 0.1;
-          spawnBurst(x, y);
-          done++;
-          if(done >= burstsThisRound){
-            clearInterval(roundInterval);
-            setTimeout(scheduleNextRound, 3000 + Math.random()*2000);
-          }
-        }, 350);
-      }
-      scheduleNextRound();
-    }
+    let loveParticles = [];
+    const heartChars = ['💖','💗','💓','💕','❤️'];
 
-    /* ---------------- Candle "Cracker" Sparkler (loops continuously) ---------------- */
-    const sparkCanvas = document.getElementById('sparkCanvas');
-    const sctx = sparkCanvas.getContext('2d');
-    let sparkParticles = [];
-    const tipX = sparkCanvas.width / 2;
-    const tipY = sparkCanvas.height - 88; // roughly at the candle/flame tip
-    let sparkStarted = false;
-
-    function spawnSpark(){
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 0.5 + Math.random() * 1.5;
-      sparkParticles.push({
-        x: tipX, y: tipY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 0.5,
+    function spawnHeart(){
+      loveParticles.push({
+        type: 'heart',
+        x: Math.random() * loveCanvas.width,
+        y: loveCanvas.height + 30,
+        vy: -(0.6 + Math.random()*1.2),
+        swaySpeed: 0.015 + Math.random()*0.02,
+        swayAmp: 20 + Math.random()*30,
+        swayPhase: Math.random()*Math.PI*2,
+        size: 18 + Math.random()*20,
         alpha: 1,
-        size: 1 + Math.random() * 1.5,
-        color: Math.random() > 0.5 ? '#ffd166' : '#ffffff'
+        char: heartChars[Math.floor(Math.random()*heartChars.length)]
       });
     }
-    function sparkRenderLoop(){
-      sctx.clearRect(0,0,sparkCanvas.width, sparkCanvas.height);
-      sparkParticles.forEach(p=>{
-        p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.alpha -= 0.02;
+    function spawnSparkle(){
+      loveParticles.push({
+        type: 'sparkle',
+        x: Math.random() * loveCanvas.width,
+        y: Math.random() * loveCanvas.height,
+        size: 2 + Math.random()*3,
+        alpha: 0,
+        alphaDir: 1,
+        twinkleSpeed: 0.03 + Math.random()*0.05,
+        color: Math.random() > 0.5 ? '#ffd166' : '#ffffff',
+        life: 0,
+        maxLife: 60 + Math.random()*40
       });
-      sparkParticles = sparkParticles.filter(p => p.alpha > 0);
-      sparkParticles.forEach(p=>{
-        sctx.globalAlpha = Math.max(p.alpha,0);
-        sctx.fillStyle = p.color;
-        sctx.beginPath();
-        sctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        sctx.fill();
-      });
-      sctx.globalAlpha = 1;
-      requestAnimationFrame(sparkRenderLoop);
     }
-    sparkRenderLoop();
 
-    function startCandleSparks(){
-      if(sparkStarted) return;
-      sparkStarted = true;
-      setInterval(function(){
-        for(let i=0;i<3;i++) spawnSpark();
-      }, 90);
+    let spawning = true;
+    const heartInterval = setInterval(spawnHeart, 110);
+    const sparkleInterval = setInterval(function(){
+      for(let i=0;i<4;i++) spawnSparkle();
+    }, 60);
+
+    function renderLove(){
+      lctx.clearRect(0,0,loveCanvas.width, loveCanvas.height);
+      loveParticles.forEach(p=>{
+        if(p.type === 'heart'){
+          p.y += p.vy;
+          p.swayPhase += p.swaySpeed;
+          p.x += Math.sin(p.swayPhase) * 0.6;
+          p.alpha -= 0.004;
+          lctx.globalAlpha = Math.max(p.alpha, 0);
+          lctx.font = p.size + 'px sans-serif';
+          lctx.fillText(p.char, p.x, p.y);
+        } else {
+          p.life++;
+          p.alpha += p.alphaDir * p.twinkleSpeed;
+          if(p.alpha >= 1){ p.alpha = 1; p.alphaDir = -1; }
+          if(p.alpha <= 0){ p.alpha = 0; p.alphaDir = 1; }
+          lctx.globalAlpha = Math.max(p.alpha, 0);
+          lctx.fillStyle = p.color;
+          lctx.beginPath();
+          lctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+          lctx.fill();
+        }
+      });
+      lctx.globalAlpha = 1;
+      loveParticles = loveParticles.filter(p =>
+        p.type === 'heart' ? p.alpha > 0 && p.y > -40 : p.life < p.maxLife
+      );
+
+      if(spawning || loveParticles.length > 0){
+        requestAnimationFrame(renderLove);
+      }
     }
+    renderLove();
+
+    setTimeout(function(){
+      spawning = false;
+      clearInterval(heartInterval);
+      clearInterval(sparkleInterval);
+    }, durationMs);
+
+    setTimeout(function(){
+      loveCanvas.style.transition = 'opacity 0.6s ease';
+      loveCanvas.style.opacity = '0';
+      setTimeout(function(){
+        loveCanvas.style.display = 'none';
+        loveCanvas.style.transition = '';
+        onDone();
+      }, 600);
+    }, durationMs + 300);
+  }
+
+  /* ---------------- Firecracker / Fireworks Animation (continuous, full screen) ---------------- */
+  const canvas = document.getElementById('fireworksCanvas');
+  const ctx = canvas.getContext('2d');
+  let fwParticles = [];
+  let fwRunning = false;
+
+  function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function randomColor(){
+    const colors = ['#ff5e8a','#ffd166','#06d6a0','#4cc9f0','#f72585','#ffffff','#ffbe0b'];
+    return colors[Math.floor(Math.random()*colors.length)];
+  }
+  function spawnBurst(x, y){
+    const count = 40;
+    const color = randomColor();
+    for(let i=0;i<count;i++){
+      const angle = (Math.PI * 2 * i) / count;
+      const speed = 2 + Math.random()*3;
+      fwParticles.push({
+        x: x, y: y,
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed,
+        alpha: 1,
+        color: color,
+        size: 2 + Math.random()*2
+      });
+    }
+  }
+  function fwRenderLoop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    fwParticles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.alpha -= 0.012;
+    });
+    fwParticles = fwParticles.filter(p => p.alpha > 0);
+    fwParticles.forEach(p=>{
+      ctx.globalAlpha = Math.max(p.alpha, 0);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(fwRenderLoop);
+  }
+  fwRenderLoop();
+
+  function startFireworksLoop(){
+    if(fwRunning) return;
+    fwRunning = true;
+    function scheduleNextRound(){
+      const burstsThisRound = 4 + Math.floor(Math.random()*3);
+      let done = 0;
+      const roundInterval = setInterval(function(){
+        const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+        const y = Math.random() * canvas.height * 0.4 + canvas.height * 0.1;
+        spawnBurst(x, y);
+        done++;
+        if(done >= burstsThisRound){
+          clearInterval(roundInterval);
+          setTimeout(scheduleNextRound, 3000 + Math.random()*2000);
+        }
+      }, 350);
+    }
+    scheduleNextRound();
+  }
+
+  /* ---------------- Candle "Cracker" Sparkler (loops continuously) ---------------- */
+  const sparkCanvas = document.getElementById('sparkCanvas');
+  const sctx = sparkCanvas.getContext('2d');
+  let sparkParticles = [];
+  const tipX = sparkCanvas.width / 2;
+  const tipY = sparkCanvas.height - 88; // roughly at the candle/flame tip
+  let sparkStarted = false;
+
+  function spawnSpark(){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 0.5 + Math.random() * 1.5;
+    sparkParticles.push({
+      x: tipX, y: tipY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 0.5,
+      alpha: 1,
+      size: 1 + Math.random() * 1.5,
+      color: Math.random() > 0.5 ? '#ffd166' : '#ffffff'
+    });
+  }
+  function sparkRenderLoop(){
+    sctx.clearRect(0,0,sparkCanvas.width, sparkCanvas.height);
+    sparkParticles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.alpha -= 0.02;
+    });
+    sparkParticles = sparkParticles.filter(p => p.alpha > 0);
+    sparkParticles.forEach(p=>{
+      sctx.globalAlpha = Math.max(p.alpha,0);
+      sctx.fillStyle = p.color;
+      sctx.beginPath();
+      sctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      sctx.fill();
+    });
+    sctx.globalAlpha = 1;
+    requestAnimationFrame(sparkRenderLoop);
+  }
+  sparkRenderLoop();
+
+  function startCandleSparks(){
+    if(sparkStarted) return;
+    sparkStarted = true;
+    setInterval(function(){
+      for(let i=0;i<3;i++) spawnSpark();
+    }, 90);
+  }
 </script>
 
 </body>

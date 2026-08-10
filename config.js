@@ -32,7 +32,6 @@ const CONFIG = {
   // ^ local file in this same folder — replace cake.png with a new image anytime,
   //   or swap this string for a hosted URL if you'd rather link to one online
   cakeNameOverlay: true,                           // set to false to hide the name banner over the cake
-  cakeOverlayText: "Happy birthday Dedeepya 😘😘", // text shown in the banner above the cake
   photoWallHint: "Click or drag a photo onto any backdrop frame to upload (up to 15)",
 
   // --- backdrop photos behind the cake (15 slots) ---
