@@ -536,7 +536,7 @@ body{
 .secretStage .polaroid.fadedPhoto{
   position:fixed;
   z-index:500;
-  opacity:1;
+  opacity:0.35;
   filter:saturate(0.85);
   transition:opacity 0.2s;
   padding:8px 8px 16px 8px;
