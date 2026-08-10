@@ -1,12 +1,15 @@
 /* =========================================================================
    CONFIG — every piece of editable text, the photo behavior, and the core
-   settings live here. Both birthday-countdown.html and secret.html load
-   this file, so a change made here shows up on both pages automatically.
+   settings live here.
    ========================================================================= */
 
 const CONFIG = {
 
   // --- core settings ---
+  // Owner can unlock before the birthday date.
+  ownerPassword: "1000",
+
+  // Everyone can use this password from August 12, 2026 00:00 onward.
   password: "1215",
 
   targetDate: new Date(
@@ -22,11 +25,13 @@ const CONFIG = {
 
 
   // --- birthday message shown at the top of the page ---
-  bigWishText: "Happy Birthday {name} 🎂",
+  bigWishText:
+    "Happy Birthday {name} 🎂",
 
 
   // --- password gate text ---
-  gateTitle: "🔒 This Is Locked",
+  gateTitle:
+    "🔒 This Is Locked",
 
   gateSubtitle:
     "Enter the 4-digit code to continue",
@@ -62,7 +67,6 @@ const CONFIG = {
   cakeImageUrl:
     "cake.png",
 
-  // Set to false if you want to hide the name banner over the cake.
   cakeNameOverlay:
     true,
 
@@ -71,24 +75,21 @@ const CONFIG = {
 
 
   // --- Bubu-Dudu GIF ---
-  // Place the GIF at:
+  // File location:
   // images/bubu-dudu.gif
   bubuDuduGif:
     "images/bubu-dudu.gif",
 
 
   // --- birthday music ---
-  // Place the music file at:
+  // File location:
   // images/birthday-music.mp3
   birthdayMusic:
     "images/birthday-music.mp3",
 
 
-  // --- backdrop photos behind the cake (15 slots) ---
-  // Birthday photos are stored in:
-  // images/birthday/
-  //
-  // You can replace any of these paths with another image path.
+  // --- birthday page backdrop photos ---
+  // 15 birthday photos
   backdropPhotos: [
 
     "images/birthday/birthday2.jpg",
@@ -133,21 +134,22 @@ const CONFIG = {
 
 
   // --- YOUR SECRET MESSAGE ---
-  // Backticks allow the message to contain multiple lines and emojis.
+  // Backticks are intentional because the message contains
+  // multiple lines and emojis.
   customMessage: `Wishing you many Happy returns of the bujjamma🎉🎂❤️❤️ ilane chala chala birthday inka happy ga cheskovali nuv🧿🧿
-  Happy anniversary kanna❤️❤️❤️
-  Asalu e 4 years entha fast ga aipoyayo teliyaledu na prathi moment ni netho share cheskunte gani complete feel rakunela aipoyav Bujji
-  Nak e vishyamina netho chepte chalu nuvve na love na wife na bestfriend ❤️❤️
-  Nuv na happy place 🥺 ne pakkana undi ninnu chustu undipovalanundi
-  Sorry kanna navalla chala sarlu edchav 🥺. Adi intentionally eppudu cheyanu kanna but anukokunda aipotay bujji but ninnu happy ga unchali ani eppudu anukutu unta
-  Ne pichodini chala love chestav 🥺🥺 na luck nuv na life loki radam bujji 😘😘
-  Nuv tension assala teskoku nuv anukunnavanni e year Neku autai 🧿🧿😘😘
-  Sorry bujji dress time ki rananduku nek salary paddaka em kavalanna konta bujji nuv na bangaru 😘
-  Don't ever stop talking to me 🥺 😘😘😘😘😘
-  I love you forever ♾️ 😘💕`,
+Happy anniversary kanna❤️❤️❤️
+Asalu e 4 years entha fast ga aipoyayo teliyaledu na prathi moment ni netho share cheskunte gani complete feel rakunela aipoyav Bujji
+Nak e vishyamina netho chepte chalu nuvve na love na wife na bestfriend ❤️❤️
+Nuv na happy place 🥺 ne pakkana undi ninnu chustu undipovalanundi
+Sorry kanna navalla chala sarlu edchav 🥺. Adi intentionally eppudu cheyanu kanna but anukokunda aipotay bujji but ninnu happy ga unchali ani eppudu anukutu unta
+Ne pichodini chala love chestav 🥺🥺 na luck nuv na life loki radam bujji 😘😘
+Nuv tension assala teskoku nuv anukunnavanni e year Neku autai 🧿🧿😘😘
+Sorry bujji dress time ki rananduku nek salary paddaka em kavalanna konta bujji nuv na bangaru 😘
+Don't ever stop talking to me 🥺 😘😘😘😘😘
+I love you forever ♾️ 😘💕`,
 
 
-  // --- secret page's own photo wall ---
+  // --- secret page photo wall ---
   secretPhotoWallTitle:
     "📸 More Memories",
 
@@ -155,9 +157,7 @@ const CONFIG = {
     "Click or drag a photo to upload (up to 15)",
 
 
-  // --- secret photos ---
-  // Secret photos are stored in:
-  // images/secret/
+  // --- secret page photos ---
   revealPhotos: [
 
     "images/secret/secret3.jpg",
