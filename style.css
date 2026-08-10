@@ -737,80 +737,43 @@ body{
 
 
 /* ================================================================
-   FINAL BIRTHDAY COLLAGE FIX
+   DUDU & BUBU GIF
+   Dedicated block above the cake stage.
+   It is intentionally OUTSIDE #cakeStage so it can never collide
+   with the cake or any of the 15 polaroids.
    ================================================================ */
 
-#cakeSection{
-  overflow:visible;
-}
-
-#cakeStage{
-  overflow:visible;
-  isolation:isolate;
-}
-
-#photoWallBackdrop{
-  position:absolute !important;
-  inset:0 !important;
-  z-index:1;
-}
-
-#photoWallBackdrop .backdropPhoto{
-  z-index:1 !important;
-  transform-origin:center center;
-}
-
-#cakeStage .cakeForeground{
-  z-index:20 !important;
-}
-
-#cakeStage .balloon{
-  z-index:21 !important;
-}
-
-#cakeStage .candleWrap,
-#cakeStage .cakeNameOverlay{
-  z-index:22 !important;
-}
-
-#revealBtn{
+.duduBubuWrap{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
   position:relative;
-  z-index:30;
-  clear:both;
+  z-index:5;
+  min-height:clamp(86px, 11vw, 150px);
+  margin:2px 0 6px;
+  pointer-events:none;
 }
 
-@media (min-width:1101px){
-  #mainPage.pageWrap{
-    max-width:1200px;
-  }
-
-  #cakeSection{
-    padding-bottom:42px;
-  }
-
-  #cakeStage{
-    min-height:820px;
-    height:820px;
-    margin-bottom:34px;
-  }
-
-  #cakeStage .cakeForeground{
-    bottom:28px;
-  }
-
-  #revealBtn{
-    margin-top:18px;
-  }
+.duduBubuGif{
+  display:block;
+  width:clamp(82px, 11vw, 150px);
+  height:auto;
+  max-width:150px;
+  object-fit:contain;
+  border:0;
+  box-shadow:none;
+  pointer-events:none;
 }
 
-@media (min-width:701px) and (max-width:1100px){
-  #cakeStage{
-    min-height:760px;
-    height:760px;
-    margin-bottom:28px;
+@media (max-width:700px){
+  .duduBubuWrap{
+    min-height:82px;
+    margin:0 0 4px;
   }
 
-  #cakeStage .cakeForeground{
-    bottom:26px;
+  .duduBubuGif{
+    width:88px;
+    max-width:88px;
   }
 }
