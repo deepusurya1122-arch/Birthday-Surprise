@@ -99,7 +99,7 @@
   document.getElementById('errorMsg').textContent = CONFIG.gateErrorText;
   document.getElementById('hintLabel').textContent = CONFIG.hintLabel;
   document.getElementById('hintText').textContent = CONFIG.hintText;
-  document.getElementById('bigWish').textContent = "Happy Birthday " + CONFIG.name + " \u{1F382}";
+  document.getElementById('bigWish').textContent = CONFIG.bigWishText.replace('{name}', CONFIG.name);
   document.getElementById('tagline').textContent = CONFIG.tagline;
   document.getElementById('celebrationTitle').textContent = CONFIG.celebrationTitle;
   document.getElementById('celebrationText').textContent = CONFIG.celebrationText;
@@ -177,7 +177,7 @@
   // scatter them within the cake stage once it's actually visible and measurable,
   // keeping clear of the cake + candle + name banner so nothing overlaps or sits
   // behind it. Real (not hardcoded) dimensions keep this correct on any device.
-  const backdropSlots = buildPhotoWall('photoWallBackdrop', 15, 'backdropPhoto', CONFIG.backdropPhotos);
+  const backdropSlots = buildPhotoWall('photoWallBackdrop', 15, 'backdropPhoto', CONFIG.backdropPhotos, false);
 
   function layoutCakeBackdrop(){
     const stage = document.getElementById('cakeStage');
@@ -195,9 +195,13 @@
       h: fgRect.height + topOverhang + 10
     };
 
-    const cardW = backdropSlots[0].card.offsetWidth;
-    const cardH = backdropSlots[0].card.offsetHeight;
-    scatterSlots(backdropSlots, stage.clientWidth, stage.clientHeight, cardW, cardH, cakeExcludeRect);
+    layoutGridAroundExclusion(backdropSlots, stage, cakeExcludeRect, {
+      baseCardW: 122,
+      minCardW: 52,
+      gap: 8,
+      gapFromCenter: 12,
+      margin: 8
+    });
   }
 
   /* ---------------- Secret Message Button -> clears the page, plays a sparkle/heart

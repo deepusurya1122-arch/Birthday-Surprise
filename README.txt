@@ -1,19 +1,14 @@
-Drop your photo files in this folder, then reference them by filename
-in config.js (backdropPhotos and revealPhotos arrays).
+These are the 15 photos shown scattered around the secret message.
 
-Example:
-  1. Add photos/backdrop1.jpg, photos/backdrop2.jpg, etc.
-  2. In config.js, set:
-       backdropPhotos: [
-         "photos/backdrop1.jpg",
-         "photos/backdrop2.jpg",
-         "", "", "", "", "", "", "", "", "", "", "", "", ""
-       ]
-  3. Save and reopen birthday-countdown.html — those photos now appear
-     automatically, no upload needed.
+They're referenced directly in config.js under revealPhotos, so they load
+automatically every time the page opens — no upload needed.
 
-Leave an entry as "" to keep that slot as a click-or-drag upload
-placeholder instead. You can also use a full https:// URL to a hosted
-image instead of a local filename — either works.
+To swap one out: replace the file here with a new one of the same name
+(e.g. overwrite secret4.jpg), or add a new file and update its path in
+config.js's revealPhotos array. You can also click any photo on the actual
+page to replace it on the fly, or drag a new image onto it — that's a
+one-time visual swap for that browser session and doesn't change these
+files or config.js.
 
-This same pattern applies to revealPhotos for the secret-message page.
+Full https:// image URLs work here too instead of local filenames, if you'd
+rather link to photos hosted elsewhere.
