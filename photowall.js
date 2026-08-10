@@ -4,48 +4,61 @@
    Shared photo-wall builder for the Birthday page and Secret page.
 
    Birthday page:
-   - Always creates 15 photo slots.
-   - Automatically sizes the polaroids according to available screen space.
-   - Uses the area around the cake efficiently.
-   - Keeps photos away from the cake, balloons and name banner.
-   - Keeps all 15 photos visible.
-   - Automatically recalculates on resize/orientation change.
+   - Supports all 15 photos.
+   - Responsive sizing.
+   - Desktop layout uses the space around the cake.
+   - Keeps photos away from cake / balloons / central artwork.
+   - Reserves space for the Secret Message button.
+   - Mobile layout remains independent.
 
    Secret page:
-   - Keeps the existing fixed photo layout behavior.
-   - Does NOT intentionally change the secret-page appearance.
+   - Uses a separate layout function.
+   - Does not apply birthday-page positioning to secret photos.
    ========================================================================= */
 
 
-/* -------------------------------------------------------------------------
+/* =========================================================================
    IMAGE HELPERS
-   ------------------------------------------------------------------------- */
+   ========================================================================= */
 
 function setSlotImage(src, img, frame) {
-  if (!src) return;
+  if (!src || !img || !frame) {
+    return;
+  }
 
   img.src = src;
   img.style.display = 'block';
+
   frame.style.background = 'none';
 }
 
 
 function loadImageIntoSlot(file, img, frame) {
-  if (!file || !file.type || !file.type.startsWith('image/')) return;
+  if (
+    !file ||
+    !file.type ||
+    !file.type.startsWith('image/')
+  ) {
+    return;
+  }
 
   const reader = new FileReader();
 
   reader.onload = function (event) {
-    setSlotImage(event.target.result, img, frame);
+    setSlotImage(
+      event.target.result,
+      img,
+      frame
+    );
   };
 
   reader.readAsDataURL(file);
 }
 
 
-/* -------------------------------------------------------------------------
-   BUILD PHOTO WALL
-   ------------------------------------------------------------------------- */
+/* =========================================================================
+   PHOTO WALL BUILDER
+   ========================================================================= */
 
 function buildPhotoWall(
   containerId,
@@ -54,74 +67,140 @@ function buildPhotoWall(
   initialSrcs,
   showLabel
 ) {
+
   if (showLabel === undefined) {
     showLabel = true;
   }
 
-  const wall = document.getElementById(containerId);
+  const wall =
+    document.getElementById(
+      containerId
+    );
 
   if (!wall) {
     return [];
   }
 
+
   const slots = [];
 
-  for (let i = 0; i < count; i++) {
+
+  for (
+    let i = 0;
+    i < count;
+    i++
+  ) {
 
     /*
-      Rotation is generated only once.
-      The layout itself is deterministic so photos do not randomly overlap.
-    */
-    const rotation = (Math.random() * 14 - 7).toFixed(1);
+     * Keep the existing Polaroid-style random rotation.
+     * Positioning itself is controlled by the layout functions.
+     */
+    const rotation =
+      (
+        Math.random() * 14 - 7
+      ).toFixed(1);
 
-    const card = document.createElement('div');
+
+    const card =
+      document.createElement('div');
+
 
     card.className =
       'polaroid' +
-      (extraClass ? ' ' + extraClass : '');
+      (
+        extraClass
+          ? ' ' + extraClass
+          : ''
+      );
 
-    card.dataset.rot = rotation;
+
+    card.dataset.rot =
+      rotation;
+
 
     card.style.transform =
-      'rotate(' + rotation + 'deg)';
+      'rotate(' +
+      rotation +
+      'deg)';
 
 
-    /* Photo frame */
+    /* ---------------------------------------------------------------
+       PHOTO FRAME
+       --------------------------------------------------------------- */
 
-    const frame = document.createElement('div');
+    const frame =
+      document.createElement('div');
 
-    frame.className = 'frame';
-
-
-    /* Image */
-
-    const img = document.createElement('img');
-
-    img.style.display = 'none';
-    img.loading = 'lazy';
-
-    img.onerror = function () {
-      img.style.display = 'none';
-      img.removeAttribute('src');
-      frame.style.background = '';
-    };
-
-    frame.appendChild(img);
+    frame.className =
+      'frame';
 
 
-    /* File input */
+    /* ---------------------------------------------------------------
+       IMAGE
+       --------------------------------------------------------------- */
 
-    const fileInput = document.createElement('input');
-
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
+    const img =
+      document.createElement('img');
 
 
-    /* Caption */
+    img.style.display =
+      'none';
 
-    const caption = document.createElement('div');
+    img.loading =
+      'lazy';
 
-    caption.className = 'capLabel';
+
+    img.onerror =
+      function () {
+
+        img.style.display =
+          'none';
+
+        img.removeAttribute(
+          'src'
+        );
+
+        frame.style.background =
+          '';
+
+      };
+
+
+    frame.appendChild(
+      img
+    );
+
+
+    /* ---------------------------------------------------------------
+       FILE INPUT
+       --------------------------------------------------------------- */
+
+    const fileInput =
+      document.createElement(
+        'input'
+      );
+
+
+    fileInput.type =
+      'file';
+
+    fileInput.accept =
+      'image/*';
+
+
+    /* ---------------------------------------------------------------
+       CAPTION
+       --------------------------------------------------------------- */
+
+    const caption =
+      document.createElement(
+        'div'
+      );
+
+
+    caption.className =
+      'capLabel';
+
 
     caption.textContent =
       showLabel
@@ -129,46 +208,79 @@ function buildPhotoWall(
         : '';
 
 
-    /* Assemble */
+    /* ---------------------------------------------------------------
+       ASSEMBLE
+       --------------------------------------------------------------- */
 
-    card.appendChild(frame);
-    card.appendChild(caption);
-    card.appendChild(fileInput);
+    card.appendChild(
+      frame
+    );
 
-    wall.appendChild(card);
+    card.appendChild(
+      caption
+    );
+
+    card.appendChild(
+      fileInput
+    );
+
+
+    wall.appendChild(
+      card
+    );
 
 
     const slot = {
+
       card: card,
+
       frame: frame,
+
       img: img
+
     };
 
-    slots.push(slot);
+
+    slots.push(
+      slot
+    );
 
 
-    /* Preloaded image */
+    /* ---------------------------------------------------------------
+       PRELOADED IMAGE
+       --------------------------------------------------------------- */
 
     if (
       initialSrcs &&
       initialSrcs[i]
     ) {
+
       setSlotImage(
         initialSrcs[i],
         img,
         frame
       );
+
     }
 
 
-    /* Click to upload */
+    /* ---------------------------------------------------------------
+       CLICK TO UPLOAD
+       --------------------------------------------------------------- */
 
-    card.addEventListener('click', function () {
-      fileInput.click();
-    });
+    card.addEventListener(
+      'click',
+      function () {
+
+        fileInput.click();
+
+      }
+    );
 
 
-    /* File selected */
+    /* ---------------------------------------------------------------
+       FILE SELECTED
+       --------------------------------------------------------------- */
 
     fileInput.addEventListener(
       'change',
@@ -178,18 +290,22 @@ function buildPhotoWall(
           event.target.files &&
           event.target.files[0]
         ) {
+
           loadImageIntoSlot(
             event.target.files[0],
             img,
             frame
           );
+
         }
 
       }
     );
 
 
-    /* Drag over */
+    /* ---------------------------------------------------------------
+       DRAG OVER
+       --------------------------------------------------------------- */
 
     card.addEventListener(
       'dragover',
@@ -197,25 +313,33 @@ function buildPhotoWall(
 
         event.preventDefault();
 
-        card.classList.add('dragOver');
+        card.classList.add(
+          'dragOver'
+        );
 
       }
     );
 
 
-    /* Drag leave */
+    /* ---------------------------------------------------------------
+       DRAG LEAVE
+       --------------------------------------------------------------- */
 
     card.addEventListener(
       'dragleave',
       function () {
 
-        card.classList.remove('dragOver');
+        card.classList.remove(
+          'dragOver'
+        );
 
       }
     );
 
 
-    /* Drop */
+    /* ---------------------------------------------------------------
+       DROP
+       --------------------------------------------------------------- */
 
     card.addEventListener(
       'drop',
@@ -223,7 +347,10 @@ function buildPhotoWall(
 
         event.preventDefault();
 
-        card.classList.remove('dragOver');
+        card.classList.remove(
+          'dragOver'
+        );
+
 
         if (
           event.dataTransfer &&
@@ -245,7 +372,9 @@ function buildPhotoWall(
   }
 
 
-  /* Multi-photo drop */
+  /* =========================================================================
+     MULTI-PHOTO DROP
+     ========================================================================= */
 
   wall.addEventListener(
     'dragover',
@@ -263,43 +392,61 @@ function buildPhotoWall(
 
       event.preventDefault();
 
+
       const files =
         Array.from(
           event.dataTransfer.files || []
-        ).filter(function (file) {
-          return (
-            file.type &&
-            file.type.startsWith('image/')
-          );
-        });
+        ).filter(
+          function (file) {
+
+            return (
+              file.type &&
+              file.type.startsWith(
+                'image/'
+              )
+            );
+
+          }
+        );
 
 
-      if (files.length === 0) {
+      if (
+        files.length === 0
+      ) {
         return;
       }
 
 
       const emptySlots =
-        slots.filter(function (slot) {
-          return (
-            slot.img.style.display === 'none'
-          );
-        });
+        slots.filter(
+          function (slot) {
+
+            return (
+              slot.img.style.display ===
+              'none'
+            );
+
+          }
+        );
 
 
-      files.forEach(function (file, index) {
+      files.forEach(
+        function (file, index) {
 
-        if (emptySlots[index]) {
+          if (
+            emptySlots[index]
+          ) {
 
-          loadImageIntoSlot(
-            file,
-            emptySlots[index].img,
-            emptySlots[index].frame
-          );
+            loadImageIntoSlot(
+              file,
+              emptySlots[index].img,
+              emptySlots[index].frame
+            );
+
+          }
 
         }
-
-      });
+      );
 
     }
   );
@@ -310,621 +457,72 @@ function buildPhotoWall(
 
 
 /* =========================================================================
-   BIRTHDAY PAGE LAYOUT
+   BIRTHDAY CARD DIMENSIONS
    ========================================================================= */
 
+function birthdayCardHeight(
+  width
+) {
 
-/*
-   Calculate the actual rendered height of a birthday polaroid.
+  /*
+   * Polaroid frame:
+   * approximately 85% of card width.
+   *
+   * Additional white Polaroid area:
+   * approximately 24px.
+   */
 
-   CSS:
-     top padding    = 8px
-     bottom padding = 16px
-     frame height   = 0.85 * card width
-
-   Therefore:
-     total height = width * 0.85 + 24
-*/
-function birthdayCardHeight(width) {
   return (
     width * 0.85 +
     24
   );
+
 }
 
 
-/*
-   Check whether two rectangles overlap.
-*/
-function rectanglesOverlap(a, b, padding) {
+/* =========================================================================
+   RECTANGLE HELPER
+   ========================================================================= */
 
-  padding = padding || 0;
+function rectanglesOverlap(
+  a,
+  b,
+  padding
+) {
+
+  padding =
+    padding || 0;
+
 
   return !(
-    a.x + a.w + padding <= b.x ||
-    b.x + b.w + padding <= a.x ||
-    a.y + a.h + padding <= b.y ||
-    b.y + b.h + padding <= a.y
-  );
-}
+    a.x +
+    a.w +
+    padding <=
+    b.x ||
 
+    b.x +
+    b.w +
+    padding <=
+    a.x ||
 
-/*
-   Find how many cards can fit horizontally inside a band.
-*/
-function columnsForWidth(
-  availableWidth,
-  cardWidth,
-  gap
-) {
+    a.y +
+    a.h +
+    padding <=
+    b.y ||
 
-  return Math.max(
-    1,
-    Math.floor(
-      (availableWidth + gap) /
-      (cardWidth + gap)
-    )
+    b.y +
+    b.h +
+    padding <=
+    a.y
   );
 
 }
 
 
-/*
-   Find how many cards can fit vertically inside a band.
-*/
-function rowsForHeight(
-  availableHeight,
-  cardWidth,
-  gap
-) {
+/* =========================================================================
+   BIRTHDAY PHOTO-WALL LAYOUT
+   ========================================================================= */
 
-  const cardHeight =
-    birthdayCardHeight(cardWidth);
-
-  return Math.max(
-    0,
-    Math.floor(
-      (availableHeight + gap) /
-      (cardHeight + gap)
-    )
-  );
-
-}
-
-
-/*
-   Determine a good distribution of the 15 photos.
-
-   We deliberately prefer:
-
-       TOP
-   LEFT  CAKE  RIGHT
-      BOTTOM
-
-   On wide screens:
-       5 top
-       2 left
-       3 right
-       5 bottom
-
-   On smaller screens the function automatically changes the distribution.
-
-   The important part is that we NEVER throw away any of the 15 photos.
-*/
-function chooseBirthdayDistribution(
-  cardWidth,
-  stageWidth,
-  stageHeight,
-  exclusion
-) {
-
-  const gap = 12;
-
-  const topHeight =
-    Math.max(
-      0,
-      exclusion.y - 10
-    );
-
-  const bottomHeight =
-    Math.max(
-      0,
-      stageHeight -
-      (exclusion.y + exclusion.h) -
-      10
-    );
-
-  const leftWidth =
-    Math.max(
-      0,
-      exclusion.x - 10
-    );
-
-  const rightWidth =
-    Math.max(
-      0,
-      stageWidth -
-      (exclusion.x + exclusion.w) -
-      10
-    );
-
-  const sideHeight =
-    Math.max(
-      0,
-      exclusion.h
-    );
-
-
-  const topCols =
-    columnsForWidth(
-      stageWidth - 20,
-      cardWidth,
-      gap
-    );
-
-  const bottomCols =
-    columnsForWidth(
-      stageWidth - 20,
-      cardWidth,
-      gap
-    );
-
-  const leftCols =
-    columnsForWidth(
-      leftWidth,
-      cardWidth,
-      gap
-    );
-
-  const rightCols =
-    columnsForWidth(
-      rightWidth,
-      cardWidth,
-      gap
-    );
-
-
-  const topRows =
-    rowsForHeight(
-      topHeight,
-      cardWidth,
-      gap
-    );
-
-  const bottomRows =
-    rowsForHeight(
-      bottomHeight,
-      cardWidth,
-      gap
-    );
-
-  const leftRows =
-    rowsForHeight(
-      sideHeight,
-      cardWidth,
-      gap
-    );
-
-  const rightRows =
-    rowsForHeight(
-      sideHeight,
-      cardWidth,
-      gap
-    );
-
-
-  const capacities = {
-
-    top:
-      topCols *
-      topRows,
-
-    bottom:
-      bottomCols *
-      bottomRows,
-
-    left:
-      leftCols *
-      leftRows,
-
-    right:
-      rightCols *
-      rightRows
-
-  };
-
-
-  /*
-     We want a visually balanced layout.
-
-     Try several distributions and choose the first one
-     that can hold all 15 photos.
-  */
-
-  const distributions = [
-
-    /*
-      Wide desktop
-    */
-    {
-      top: 5,
-      bottom: 5,
-      left: 2,
-      right: 3
-    },
-
-    {
-      top: 4,
-      bottom: 4,
-      left: 3,
-      right: 4
-    },
-
-    {
-      top: 5,
-      bottom: 4,
-      left: 3,
-      right: 3
-    },
-
-    {
-      top: 4,
-      bottom: 5,
-      left: 3,
-      right: 3
-    },
-
-    /*
-      More side-heavy
-    */
-    {
-      top: 3,
-      bottom: 3,
-      left: 4,
-      right: 5
-    },
-
-    {
-      top: 3,
-      bottom: 4,
-      left: 4,
-      right: 4
-    },
-
-    {
-      top: 4,
-      bottom: 3,
-      left: 4,
-      right: 4
-    },
-
-    /*
-      Mostly top and bottom.
-    */
-    {
-      top: 7,
-      bottom: 8,
-      left: 0,
-      right: 0
-    },
-
-    {
-      top: 8,
-      bottom: 7,
-      left: 0,
-      right: 0
-    }
-
-  ];
-
-
-  for (
-    let i = 0;
-    i < distributions.length;
-    i++
-  ) {
-
-    const d =
-      distributions[i];
-
-
-    if (
-      d.top <= capacities.top &&
-      d.bottom <= capacities.bottom &&
-      d.left <= capacities.left &&
-      d.right <= capacities.right
-    ) {
-
-      return d;
-
-    }
-
-  }
-
-
-  /*
-     If none of the preferred distributions fits,
-     construct a distribution automatically.
-
-     This is especially useful on phones.
-  */
-
-  let best = null;
-
-
-  for (
-    let top = 0;
-    top <= Math.min(
-      15,
-      capacities.top
-    );
-    top++
-  ) {
-
-    for (
-      let bottom = 0;
-      bottom <= Math.min(
-        15 - top,
-        capacities.bottom
-      );
-      bottom++
-    ) {
-
-      for (
-        let left = 0;
-        left <= Math.min(
-          15 - top - bottom,
-          capacities.left
-        );
-        left++
-      ) {
-
-        const right =
-          15 -
-          top -
-          bottom -
-          left;
-
-
-        if (
-          right < 0 ||
-          right > capacities.right
-        ) {
-          continue;
-        }
-
-
-        /*
-           Score layouts:
-
-           - Prefer balanced left/right.
-           - Prefer balanced top/bottom.
-           - Prefer using all four areas.
-        */
-
-        const sideBalance =
-          Math.abs(left - right);
-
-        const verticalBalance =
-          Math.abs(top - bottom);
-
-        const usedBands =
-          [
-            top,
-            bottom,
-            left,
-            right
-          ].filter(
-            function (value) {
-              return value > 0;
-            }
-          ).length;
-
-
-        const score =
-          sideBalance * 20 +
-          verticalBalance * 5 -
-          usedBands * 3;
-
-
-        if (
-          best === null ||
-          score < best.score
-        ) {
-
-          best = {
-            top: top,
-            bottom: bottom,
-            left: left,
-            right: right,
-            score: score
-          };
-
-        }
-
-      }
-
-    }
-
-  }
-
-
-  if (best) {
-    return best;
-  }
-
-
-  /*
-     Absolute fallback.
-     At this point the screen is extremely small.
-     Put every photo into top/bottom rows.
-  */
-
-  return {
-    top: Math.ceil(15 / 2),
-    bottom: Math.floor(15 / 2),
-    left: 0,
-    right: 0
-  };
-
-}
-
-
-/*
-   Place a row of cards inside a rectangular band.
-*/
-function placeBirthdayBand(
-  slots,
-  startIndex,
-  count,
-  box,
-  cardWidth,
-  gap
-) {
-
-  if (count <= 0) {
-    return startIndex;
-  }
-
-
-  const cardHeight =
-    birthdayCardHeight(
-      cardWidth
-    );
-
-
-  const columns =
-    Math.max(
-      1,
-      columnsForWidth(
-        box.w,
-        cardWidth,
-        gap
-      )
-    );
-
-
-  const rows =
-    Math.ceil(
-      count / columns
-    );
-
-
-  const usedWidth =
-    columns * cardWidth +
-    (columns - 1) * gap;
-
-
-  const usedHeight =
-    rows * cardHeight +
-    (rows - 1) * gap;
-
-
-  const originX =
-    box.x +
-    Math.max(
-      0,
-      (box.w - usedWidth) / 2
-    );
-
-
-  const originY =
-    box.y +
-    Math.max(
-      0,
-      (box.h - usedHeight) / 2
-    );
-
-
-  let index =
-    startIndex;
-
-
-  for (
-    let row = 0;
-    row < rows;
-    row++
-  ) {
-
-    for (
-      let col = 0;
-      col < columns;
-      col++
-    ) {
-
-      if (
-        index >=
-        startIndex + count
-      ) {
-        break;
-      }
-
-
-      const slot =
-        slots[index];
-
-
-      if (!slot) {
-        continue;
-      }
-
-
-      const x =
-        originX +
-        col *
-        (cardWidth + gap);
-
-
-      const y =
-        originY +
-        row *
-        (cardHeight + gap);
-
-
-      slot.card.style.position =
-        'absolute';
-
-      slot.card.style.display =
-        '';
-
-      slot.card.style.width =
-        cardWidth + 'px';
-
-      slot.card.style.left =
-        Math.round(x) + 'px';
-
-      slot.card.style.top =
-        Math.round(y) + 'px';
-
-
-      if (slot.frame) {
-
-        slot.frame.style.height =
-          Math.round(
-            cardWidth * 0.85
-          ) + 'px';
-
-      }
-
-
-      index++;
-
-    }
-
-  }
-
-
-  return index;
-
-}
-
-
-/*
-   Main birthday layout.
-
-   This replaces the previous layoutGridAroundExclusion()
-   implementation that was shrinking the photos too aggressively.
-*/
 function layoutGridAroundExclusion(
   slots,
   containerEl,
@@ -932,12 +530,15 @@ function layoutGridAroundExclusion(
   opts
 ) {
 
-  opts = opts || {};
+  opts =
+    opts || {};
+
 
   if (
     !slots ||
     slots.length === 0 ||
-    !containerEl
+    !containerEl ||
+    !exclusionRect
   ) {
     return;
   }
@@ -945,6 +546,7 @@ function layoutGridAroundExclusion(
 
   const stageWidth =
     containerEl.clientWidth;
+
 
   const stageHeight =
     containerEl.clientHeight;
@@ -958,403 +560,845 @@ function layoutGridAroundExclusion(
   }
 
 
-  /*
-     Responsive limits.
-
-     Desktop:
-       around 155-165px
-
-     Tablet:
-       around 125-145px
-
-     Phone:
-       around 88-115px
-  */
-
-  let maxCardWidth;
-
-
-  if (stageWidth >= 1200) {
-
-    maxCardWidth = 165;
-
-  } else if (stageWidth >= 900) {
-
-    maxCardWidth = 150;
-
-  } else if (stageWidth >= 650) {
-
-    maxCardWidth = 125;
-
-  } else {
-
-    maxCardWidth = 105;
-
-  }
-
+  /* =========================================================================
+     PHONE / SMALL TABLET
+     -------------------------------------------------------------------------
+     Keep this independent from the desktop layout.
+     ========================================================================= */
 
   if (
-    opts.baseCardW != null
+    stageWidth < 700
   ) {
 
-    maxCardWidth =
-      Math.max(
-        maxCardWidth,
-        opts.baseCardW
+    let cardWidth =
+      Math.min(
+        105,
+        Math.max(
+          72,
+          (
+            stageWidth -
+            32
+          ) / 3
+        )
       );
 
+
+    const gap =
+      7;
+
+
+    const cardHeight =
+      birthdayCardHeight(
+        cardWidth
+      );
+
+
+    const columns =
+      Math.max(
+        1,
+        Math.floor(
+          (
+            stageWidth -
+            16 +
+            gap
+          ) /
+          (
+            cardWidth +
+            gap
+          )
+        )
+      );
+
+
+    let index =
+      0;
+
+
+    for (
+      let row = 0;
+      index < slots.length;
+      row++
+    ) {
+
+      for (
+        let col = 0;
+        col < columns &&
+        index < slots.length;
+        col++
+      ) {
+
+        const slot =
+          slots[index++];
+
+
+        slot.card.style.position =
+          'absolute';
+
+
+        slot.card.style.display =
+          '';
+
+
+        slot.card.style.width =
+          cardWidth + 'px';
+
+
+        slot.card.style.left =
+          (
+            8 +
+            col *
+            (
+              cardWidth +
+              gap
+            )
+          ) + 'px';
+
+
+        slot.card.style.top =
+          (
+            8 +
+            row *
+            (
+              cardHeight +
+              gap
+            )
+          ) + 'px';
+
+
+        if (
+          slot.frame
+        ) {
+
+          slot.frame.style.height =
+            (
+              cardWidth *
+              0.85
+            ) + 'px';
+
+        }
+
+      }
+
+    }
+
+
+    return;
   }
 
 
-  const minCardWidth =
-    stageWidth < 480
-      ? 72
-      : 82;
+  /* =========================================================================
+     DESKTOP / LARGE TABLET
+     ========================================================================= */
+
+  /*
+   * Desired 15-photo distribution:
+   *
+   *       1  2  3  4  5
+   *
+   *       6          8
+   *       7          9
+   *                    10
+   *
+   *       11 12 13 14 15
+   *
+   * Total = 15.
+   *
+   * The bottom row is kept above the Secret Message button.
+   */
 
 
   const gap =
-    stageWidth < 600
+    stageWidth < 900
+      ? 8
+      : 10;
+
+
+  const horizontalMargin =
+    stageWidth < 900
       ? 8
       : 12;
 
 
   /*
-     Try the largest card first.
+   * Reserve space at the bottom.
+   *
+   * This is deliberately larger than the button itself so that
+   * Polaroids do not touch the button.
+   */
 
-     We intentionally do NOT immediately shrink to 60px.
-     The old code could end up doing that because of the
-     top/bottom band calculation.
-  */
-
-  let selectedWidth = null;
-  let selectedDistribution = null;
+  const buttonReserve =
+    stageWidth < 900
+      ? 105
+      : 120;
 
 
-  for (
-    let width =
-      maxCardWidth;
-    width >= minCardWidth;
-    width -= 2
+  /* =========================================================================
+     DETECT SECRET MESSAGE BUTTON
+     ========================================================================= */
+
+  const stageRect =
+    containerEl.getBoundingClientRect();
+
+
+  const revealButton =
+    document.getElementById(
+      'revealBtn'
+    );
+
+
+  let buttonTopLimit =
+    stageHeight -
+    buttonReserve;
+
+
+  if (
+    revealButton
   ) {
 
-    const distribution =
-      chooseBirthdayDistribution(
-        width,
-        stageWidth,
-        stageHeight,
-        exclusionRect
-      );
+    const buttonRect =
+      revealButton.getBoundingClientRect();
 
 
-    const total =
-      distribution.top +
-      distribution.bottom +
-      distribution.left +
-      distribution.right;
+    const buttonRelativeTop =
+      buttonRect.top -
+      stageRect.top;
 
 
-    if (total >= slots.length) {
+    /*
+     * If the button is physically inside the stage,
+     * use its real location.
+     */
 
-      selectedWidth =
-        width;
+    if (
+      buttonRelativeTop > 0 &&
+      buttonRelativeTop < stageHeight
+    ) {
 
-      selectedDistribution =
-        distribution;
-
-      break;
+      buttonTopLimit =
+        Math.min(
+          buttonTopLimit,
+          buttonRelativeTop -
+          gap
+        );
 
     }
 
   }
 
 
-  /*
-     If the screen is too small for the preferred
-     distribution, use a safe responsive size.
-  */
+  /* =========================================================================
+     CAKE / CENTRAL ARTWORK SAFE AREA
+     ========================================================================= */
+
+  const cakePadding =
+    18;
+
+
+  const cakeLeft =
+    Math.max(
+      horizontalMargin,
+      exclusionRect.x -
+      cakePadding
+    );
+
+
+  const cakeRight =
+    Math.min(
+      stageWidth -
+      horizontalMargin,
+      exclusionRect.x +
+      exclusionRect.w +
+      cakePadding
+    );
+
+
+  const cakeTop =
+    Math.max(
+      horizontalMargin,
+      exclusionRect.y -
+      cakePadding
+    );
+
+
+  const cakeBottom =
+    Math.min(
+      stageHeight,
+      exclusionRect.y +
+      exclusionRect.h +
+      cakePadding
+    );
+
+
+  /* =========================================================================
+     START WITH LARGE POLAROIDS
+     ========================================================================= */
+
+  let cardWidth;
+
 
   if (
-    selectedWidth === null
+    stageWidth >= 1200
   ) {
 
-    selectedWidth =
-      Math.max(
-        60,
-        Math.min(
-          maxCardWidth,
-          stageWidth / 5
-        )
-      );
+    cardWidth =
+      160;
 
+  } else if (
+    stageWidth >= 1000
+  ) {
 
-    selectedDistribution =
-      chooseBirthdayDistribution(
-        selectedWidth,
-        stageWidth,
-        stageHeight,
-        exclusionRect
-      );
+    cardWidth =
+      145;
+
+  } else {
+
+    cardWidth =
+      125;
 
   }
 
 
-  const d =
-    selectedDistribution;
+  /*
+   * Respect supplied baseCardW, but do not let it make
+   * the cards unreasonably large.
+   */
+
+  if (
+    opts.baseCardW != null
+  ) {
+
+    const suppliedWidth =
+      Number(
+        opts.baseCardW
+      );
+
+
+    if (
+      Number.isFinite(
+        suppliedWidth
+      )
+    ) {
+
+      cardWidth =
+        Math.max(
+          cardWidth,
+          Math.min(
+            suppliedWidth,
+            170
+          )
+        );
+
+    }
+
+  }
+
+
+  /* =========================================================================
+     FIVE-CARD ROW MUST FIT HORIZONTALLY
+     ========================================================================= */
+
+  const maxWidthForFive =
+    (
+      stageWidth -
+      horizontalMargin * 2 -
+      gap * 4
+    ) / 5;
+
+
+  cardWidth =
+    Math.min(
+      cardWidth,
+      maxWidthForFive
+    );
 
 
   /*
-     Clear any old positions first.
-  */
+   * Never collapse desktop photos into tiny thumbnails.
+   */
 
-  slots.forEach(function (slot) {
+  const minimumDesktopCard =
+    stageWidth < 900
+      ? 72
+      : 82;
 
-    slot.card.style.display =
-      '';
+
+  cardWidth =
+    Math.max(
+      minimumDesktopCard,
+      cardWidth
+    );
+
+
+  /* =========================================================================
+     AVAILABLE AREAS
+     ========================================================================= */
+
+  const topAvailable =
+    cakeTop -
+    gap -
+    8;
+
+
+  const bottomAvailable =
+    buttonTopLimit -
+    cakeBottom -
+    gap;
+
+
+  const sideAvailable =
+    cakeBottom -
+    cakeTop;
+
+
+  function cardHeightForWidth(
+    width
+  ) {
+
+    return birthdayCardHeight(
+      width
+    );
+
+  }
+
+
+  /*
+   * Reduce card size only as much as necessary.
+   *
+   * The button is treated as a hard boundary.
+   */
+
+  while (
+    cardWidth >
+    minimumDesktopCard &&
+    (
+      cardHeightForWidth(
+        cardWidth
+      ) >
+      topAvailable ||
+
+      cardHeightForWidth(
+        cardWidth
+      ) >
+      bottomAvailable ||
+
+      (
+        cardHeightForWidth(
+          cardWidth
+        ) * 3 +
+        gap * 2
+      ) >
+      sideAvailable
+    )
+  ) {
+
+    cardWidth -= 2;
+
+  }
+
+
+  cardWidth =
+    Math.max(
+      minimumDesktopCard,
+      cardWidth
+    );
+
+
+  const cardHeight =
+    cardHeightForWidth(
+      cardWidth
+    );
+
+
+  /* =========================================================================
+     TOP ROW - 5
+     ========================================================================= */
+
+  const topCount =
+    5;
+
+
+  const topUsedWidth =
+    topCount *
+    cardWidth +
+    (
+      topCount - 1
+    ) *
+    gap;
+
+
+  const topStartX =
+    (
+      stageWidth -
+      topUsedWidth
+    ) / 2;
+
+
+  /*
+   * Keep the top row inside the stage and above the central artwork.
+   */
+
+  const topY =
+    Math.max(
+      8,
+      cakeTop -
+      cardHeight -
+      gap
+    );
+
+
+  /* =========================================================================
+     BOTTOM ROW - 5
+     ========================================================================= */
+
+  const bottomCount =
+    5;
+
+
+  const bottomUsedWidth =
+    bottomCount *
+    cardWidth +
+    (
+      bottomCount - 1
+    ) *
+    gap;
+
+
+  const bottomStartX =
+    (
+      stageWidth -
+      bottomUsedWidth
+    ) / 2;
+
+
+  /*
+   * IMPORTANT:
+   *
+   * The bottom row is positioned from buttonTopLimit,
+   * NOT from stageHeight.
+   *
+   * This prevents the Polaroids from covering the
+   * Secret Message button.
+   */
+
+  const bottomY =
+    Math.max(
+      8,
+      buttonTopLimit -
+      cardHeight
+    );
+
+
+  /* =========================================================================
+     LEFT SIDE - 2
+     ========================================================================= */
+
+  const leftCount =
+    2;
+
+
+  const leftTotalHeight =
+    leftCount *
+    cardHeight +
+    (
+      leftCount - 1
+    ) *
+    gap;
+
+
+  const leftX =
+    cakeLeft -
+    cardWidth -
+    gap;
+
+
+  let leftStartY =
+    cakeTop +
+    (
+      (
+        cakeBottom -
+        cakeTop
+      ) -
+      leftTotalHeight
+    ) / 2;
+
+
+  /* =========================================================================
+     RIGHT SIDE - 3
+     ========================================================================= */
+
+  const rightCount =
+    3;
+
+
+  const rightTotalHeight =
+    rightCount *
+    cardHeight +
+    (
+      rightCount - 1
+    ) *
+    gap;
+
+
+  const rightX =
+    cakeRight +
+    gap;
+
+
+  let rightStartY =
+    cakeTop +
+    (
+      (
+        cakeBottom -
+        cakeTop
+      ) -
+      rightTotalHeight
+    ) / 2;
+
+
+  /* =========================================================================
+     SIDE SAFETY
+     ========================================================================= */
+
+  leftStartY =
+    Math.max(
+      8,
+      Math.min(
+        buttonTopLimit -
+        leftTotalHeight,
+        leftStartY
+      )
+    );
+
+
+  rightStartY =
+    Math.max(
+      8,
+      Math.min(
+        buttonTopLimit -
+        rightTotalHeight,
+        rightStartY
+      )
+    );
+
+
+  const safeLeftX =
+    Math.max(
+      4,
+      Math.min(
+        stageWidth -
+        cardWidth -
+        4,
+        leftX
+      )
+    );
+
+
+  const safeRightX =
+    Math.max(
+      4,
+      Math.min(
+        stageWidth -
+        cardWidth -
+        4,
+        rightX
+      )
+    );
+
+
+  /* =========================================================================
+     POSITION HELPER
+     ========================================================================= */
+
+  function positionSlot(
+    slot,
+    x,
+    y
+  ) {
+
+    if (!slot) {
+      return;
+    }
+
 
     slot.card.style.position =
       'absolute';
 
-  });
+
+    slot.card.style.display =
+      '';
 
 
-  /*
-     Calculate the four safe bands.
-  */
-
-  const topBox = {
-
-    x: 10,
-
-    y: 8,
-
-    w: stageWidth - 20,
-
-    h:
-      Math.max(
-        0,
-        exclusionRect.y - 16
-      )
-
-  };
+    slot.card.style.width =
+      cardWidth + 'px';
 
 
-  const bottomBox = {
-
-    x: 10,
-
-    y:
-      exclusionRect.y +
-      exclusionRect.h +
-      8,
-
-    w:
-      stageWidth - 20,
-
-    h:
-      Math.max(
-        0,
-        stageHeight -
-        (
-          exclusionRect.y +
-          exclusionRect.h
-        ) -
-        16
-      )
-
-  };
+    slot.card.style.left =
+      Math.round(
+        x
+      ) + 'px';
 
 
-  const leftBox = {
-
-    x: 8,
-
-    y:
-      exclusionRect.y,
-
-    w:
-      Math.max(
-        0,
-        exclusionRect.x - 16
-      ),
-
-    h:
-      exclusionRect.h
-
-  };
+    slot.card.style.top =
+      Math.round(
+        y
+      ) + 'px';
 
 
-  const rightBox = {
-
-    x:
-      exclusionRect.x +
-      exclusionRect.w +
-      8,
-
-    y:
-      exclusionRect.y,
-
-    w:
-      Math.max(
-        0,
-        stageWidth -
-        (
-          exclusionRect.x +
-          exclusionRect.w
-        ) -
-        16
-      ),
-
-    h:
-      exclusionRect.h
-
-  };
-
-
-  /*
-     Put photos into the four bands.
-
-     The order remains sequential so all 15
-     CONFIG photos keep their original numbering.
-  */
-
-  let index = 0;
-
-
-  index =
-    placeBirthdayBand(
-      slots,
-      index,
-      d.top,
-      topBox,
-      selectedWidth,
-      gap
-    );
-
-
-  index =
-    placeBirthdayBand(
-      slots,
-      index,
-      d.left,
-      leftBox,
-      selectedWidth,
-      gap
-    );
-
-
-  index =
-    placeBirthdayBand(
-      slots,
-      index,
-      d.right,
-      rightBox,
-      selectedWidth,
-      gap
-    );
-
-
-  index =
-    placeBirthdayBand(
-      slots,
-      index,
-      d.bottom,
-      bottomBox,
-      selectedWidth,
-      gap
-    );
-
-
-  /*
-     Absolute safety fallback.
-
-     If for some unusual viewport the calculated
-     distribution did not consume every slot,
-     place the remaining photos in a compact row
-     at the bottom without hiding them.
-  */
-
-  if (index < slots.length) {
-
-    const remaining =
-      slots.length - index;
-
-
-    const safeWidth =
-      Math.max(
-        58,
-        Math.min(
-          selectedWidth,
-          (
-            stageWidth -
-            20 -
-            (
-              remaining - 1
-            ) * gap
-          ) /
-          Math.max(
-            1,
-            remaining
-          )
-        )
-      );
-
-
-    for (
-      let i = index;
-      i < slots.length;
-      i++
+    if (
+      slot.frame
     ) {
 
-      const local =
-        i - index;
-
-
-      slots[i].card.style.position =
-        'absolute';
-
-      slots[i].card.style.display =
-        '';
-
-      slots[i].card.style.width =
-        safeWidth + 'px';
-
-      slots[i].card.style.left =
-        Math.max(
-          8,
-          Math.min(
-            stageWidth -
-            safeWidth -
-            8,
-            8 +
-            local *
-            (
-              safeWidth +
-              gap
-            )
-          )
+      slot.frame.style.height =
+        Math.round(
+          cardWidth *
+          0.85
         ) + 'px';
-
-      slots[i].card.style.top =
-        Math.max(
-          8,
-          stageHeight -
-          birthdayCardHeight(
-            safeWidth
-          ) -
-          8
-        ) + 'px';
-
-
-      if (slots[i].frame) {
-
-        slots[i].frame.style.height =
-          (
-            safeWidth * 0.85
-          ) + 'px';
-
-      }
 
     }
+
+  }
+
+
+  /* =========================================================================
+     PLACE ALL 15
+     ========================================================================= */
+
+  let index =
+    0;
+
+
+  /*
+   * Photos 1-5
+   * TOP
+   */
+
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    positionSlot(
+      slots[index++],
+
+      topStartX +
+      i *
+      (
+        cardWidth +
+        gap
+      ),
+
+      topY
+    );
+
+  }
+
+
+  /*
+   * Photos 6-7
+   * LEFT
+   */
+
+  for (
+    let i = 0;
+    i < 2;
+    i++
+  ) {
+
+    positionSlot(
+      slots[index++],
+
+      safeLeftX,
+
+      leftStartY +
+      i *
+      (
+        cardHeight +
+        gap
+      )
+    );
+
+  }
+
+
+  /*
+   * Photos 8-10
+   * RIGHT
+   */
+
+  for (
+    let i = 0;
+    i < 3;
+    i++
+  ) {
+
+    positionSlot(
+      slots[index++],
+
+      safeRightX,
+
+      rightStartY +
+      i *
+      (
+        cardHeight +
+        gap
+      )
+    );
+
+  }
+
+
+  /*
+   * Photos 11-15
+   * BOTTOM
+   */
+
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    positionSlot(
+      slots[index++],
+
+      bottomStartX +
+      i *
+      (
+        cardWidth +
+        gap
+      ),
+
+      bottomY
+    );
+
+  }
+
+
+  /*
+   * Never hide additional slots.
+   *
+   * This protects the layout if CONFIG later contains
+   * more than 15 images.
+   */
+
+  for (
+    let i = index;
+    i < slots.length;
+    i++
+  ) {
+
+    positionSlot(
+      slots[i],
+
+      horizontalMargin,
+
+      Math.max(
+        8,
+        buttonTopLimit -
+        cardHeight
+      )
+    );
 
   }
 
@@ -1362,24 +1406,20 @@ function layoutGridAroundExclusion(
 
 
 /* =========================================================================
-   SECRET PAGE LAYOUT
+   SECRET PAGE PHOTO LAYOUT
    -------------------------------------------------------------------------
-   Kept separate from the birthday-page layout.
+   This is kept separate from the birthday-page layout.
    ========================================================================= */
 
-
-/*
-   Existing-style fixed grid around the secret message.
-
-   This is deliberately independent from the birthday layout above.
-*/
 function layoutPhotosAroundMessage(
   slots,
   messageEl,
   opts
 ) {
 
-  opts = opts || {};
+  opts =
+    opts || {};
+
 
   if (
     !slots ||
@@ -1437,8 +1477,10 @@ function layoutPhotosAroundMessage(
 
 
   /*
-     Keep the existing secret-page sizing behavior.
-  */
+   * Secret-page Polaroid sizing.
+   *
+   * This remains independent of the birthday page.
+   */
 
   let cardWidth =
     opts.baseCardW != null
@@ -1460,7 +1502,9 @@ function layoutPhotosAroundMessage(
     24;
 
 
-  function cardHeight(width) {
+  function cardHeight(
+    width
+  ) {
 
     return (
       width *
@@ -1470,6 +1514,10 @@ function layoutPhotosAroundMessage(
 
   }
 
+
+  /* =========================================================================
+     AVAILABLE SECRET-PAGE AREAS
+     ========================================================================= */
 
   const topSpace =
     Math.max(
@@ -1496,8 +1544,7 @@ function layoutPhotosAroundMessage(
       (
         viewportWidth -
         messageRect.width
-      ) /
-      2 -
+      ) / 2 -
       sideMargin -
       gapFromMessage
     );
@@ -1509,8 +1556,10 @@ function layoutPhotosAroundMessage(
 
   const useSides =
     sideWidth >=
-    minCardWidth +
-    gap * 2;
+    (
+      minCardWidth +
+      gap * 2
+    );
 
 
   const bands =
@@ -1566,19 +1615,29 @@ function layoutPhotosAroundMessage(
   };
 
 
-  const counts = {};
+  /* =========================================================================
+     DISTRIBUTE SECRET PHOTOS
+     ========================================================================= */
+
+  const counts =
+    {};
 
 
-  bands.forEach(function (band) {
+  bands.forEach(
+    function (band) {
 
-    counts[band] = 0;
+      counts[band] =
+        0;
 
-  });
+    }
+  );
 
 
-  if (useSides) {
+  if (
+    useSides
+  ) {
 
-    let side =
+    const side =
       Math.floor(
         n / 4
       );
@@ -1622,10 +1681,18 @@ function layoutPhotosAroundMessage(
   }
 
 
-  function fits(width) {
+  /* =========================================================================
+     CHECK SECRET-PAGE CARD SIZE
+     ========================================================================= */
+
+  function fits(
+    width
+  ) {
 
     const height =
-      cardHeight(width);
+      cardHeight(
+        width
+      );
 
 
     return bands.every(
@@ -1639,8 +1706,12 @@ function layoutPhotosAroundMessage(
           counts[band];
 
 
-        if (count === 0) {
+        if (
+          count === 0
+        ) {
+
           return true;
+
         }
 
 
@@ -1648,7 +1719,9 @@ function layoutPhotosAroundMessage(
           width >
           box.w
         ) {
+
           return false;
+
         }
 
 
@@ -1657,10 +1730,12 @@ function layoutPhotosAroundMessage(
             1,
             Math.floor(
               (
-                box.w + gap
+                box.w +
+                gap
               ) /
               (
-                width + gap
+                width +
+                gap
               )
             )
           );
@@ -1680,7 +1755,8 @@ function layoutPhotosAroundMessage(
             rows - 1
           ) *
           gap
-        ) <= box.h;
+        ) <=
+        box.h;
 
       }
     );
@@ -1688,13 +1764,20 @@ function layoutPhotosAroundMessage(
   }
 
 
+  /* =========================================================================
+     RESPONSIVE SECRET-PAGE SIZE
+     ========================================================================= */
+
   while (
     cardWidth >
     minCardWidth &&
-    !fits(cardWidth)
+    !fits(
+      cardWidth
+    )
   ) {
 
-    cardWidth -= 2;
+    cardWidth -=
+      2;
 
   }
 
@@ -1706,7 +1789,12 @@ function layoutPhotosAroundMessage(
     );
 
 
-  let index = 0;
+  /* =========================================================================
+     PLACE SECRET PHOTOS
+     ========================================================================= */
+
+  let index =
+    0;
 
 
   bands.forEach(
@@ -1716,8 +1804,12 @@ function layoutPhotosAroundMessage(
         counts[band];
 
 
-      if (count === 0) {
+      if (
+        count === 0
+      ) {
+
         return;
+
       }
 
 
@@ -1730,7 +1822,8 @@ function layoutPhotosAroundMessage(
           1,
           Math.floor(
             (
-              box.w + gap
+              box.w +
+              gap
             ) /
             (
               cardWidth +
@@ -1775,7 +1868,13 @@ function layoutPhotosAroundMessage(
       let boxTop;
 
 
-      if (band === 'top') {
+      /* ---------------------------------------------------------------
+         TOP
+         --------------------------------------------------------------- */
+
+      if (
+        band === 'top'
+      ) {
 
         boxLeft =
           sideMargin;
@@ -1786,7 +1885,13 @@ function layoutPhotosAroundMessage(
       }
 
 
-      if (band === 'bottom') {
+      /* ---------------------------------------------------------------
+         BOTTOM
+         --------------------------------------------------------------- */
+
+      if (
+        band === 'bottom'
+      ) {
 
         boxLeft =
           sideMargin;
@@ -1799,7 +1904,13 @@ function layoutPhotosAroundMessage(
       }
 
 
-      if (band === 'left') {
+      /* ---------------------------------------------------------------
+         LEFT
+         --------------------------------------------------------------- */
+
+      if (
+        band === 'left'
+      ) {
 
         boxLeft =
           sideMargin;
@@ -1810,7 +1921,13 @@ function layoutPhotosAroundMessage(
       }
 
 
-      if (band === 'right') {
+      /* ---------------------------------------------------------------
+         RIGHT
+         --------------------------------------------------------------- */
+
+      if (
+        band === 'right'
+      ) {
 
         boxLeft =
           viewportWidth -
@@ -1828,8 +1945,7 @@ function layoutPhotosAroundMessage(
         (
           box.w -
           usedWidth
-        ) /
-        2;
+        ) / 2;
 
 
       const originY =
@@ -1837,8 +1953,7 @@ function layoutPhotosAroundMessage(
         (
           box.h -
           usedHeight
-        ) /
-        2;
+        ) / 2;
 
 
       for (
@@ -1871,11 +1986,15 @@ function layoutPhotosAroundMessage(
         slot.card.style.position =
           'fixed';
 
+
         slot.card.style.display =
           '';
 
+
         slot.card.style.width =
-          cardWidth + 'px';
+          cardWidth +
+          'px';
+
 
         slot.card.style.left =
           Math.round(
@@ -1885,7 +2004,9 @@ function layoutPhotosAroundMessage(
               cardWidth +
               gap
             )
-          ) + 'px';
+          ) +
+          'px';
+
 
         slot.card.style.top =
           Math.round(
@@ -1895,16 +2016,20 @@ function layoutPhotosAroundMessage(
               cardHeightValue +
               gap
             )
-          ) + 'px';
+          ) +
+          'px';
 
 
-        if (slot.frame) {
+        if (
+          slot.frame
+        ) {
 
           slot.frame.style.height =
             (
               cardWidth *
               0.85
-            ) + 'px';
+            ) +
+            'px';
 
         }
 
@@ -1929,220 +2054,254 @@ function scatterSlots(
   excludeRect
 ) {
 
-  const placed = [];
-
-  const maxAttempts = 300;
-
-
-  slots.forEach(function (slot) {
-
-    let position = null;
+  const placed =
+    [];
 
 
-    for (
-      let attempt = 0;
-      attempt < maxAttempts;
-      attempt++
-    ) {
-
-      const candidate = {
-
-        x:
-          Math.random() *
-          Math.max(
-            1,
-            stageWidth -
-            cardWidth
-          ),
-
-        y:
-          Math.random() *
-          Math.max(
-            1,
-            stageHeight -
-            cardHeight
-          ),
-
-        w:
-          cardWidth,
-
-        h:
-          cardHeight
-
-      };
+  const maxAttempts =
+    300;
 
 
-      const hitsExclude =
-        excludeRect &&
-        rectanglesOverlap(
-          candidate,
-          excludeRect,
-          12
-        );
+  slots.forEach(
+    function (slot) {
+
+      let position =
+        null;
 
 
-      const hitsPhoto =
-        placed.some(
-          function (existing) {
-
-            return rectanglesOverlap(
-              candidate,
-              existing,
-              8
-            );
-
-          }
-        );
-
-
-      if (
-        !hitsExclude &&
-        !hitsPhoto
-      ) {
-
-        position =
-          candidate;
-
-        break;
-
-      }
-
-    }
-
-
-    /*
-       Deterministic fallback.
-    */
-
-    if (!position) {
-
-      outerLoop:
+      /* ---------------------------------------------------------------
+         RANDOM SEARCH
+         --------------------------------------------------------------- */
 
       for (
-        let y = 0;
-        y <=
-        stageHeight -
-        cardHeight;
-        y += 8
+        let attempt = 0;
+        attempt < maxAttempts;
+        attempt++
       ) {
 
-        for (
-          let x = 0;
-          x <=
-          stageWidth -
-          cardWidth;
-          x += 8
-        ) {
+        const candidate = {
 
-          const candidate = {
+          x:
+            Math.random() *
+            Math.max(
+              1,
+              stageWidth -
+              cardWidth
+            ),
 
-            x: x,
-
-            y: y,
-
-            w:
-              cardWidth,
-
-            h:
+          y:
+            Math.random() *
+            Math.max(
+              1,
+              stageHeight -
               cardHeight
+            ),
 
-          };
+          w:
+            cardWidth,
 
+          h:
+            cardHeight
 
-          if (
-            excludeRect &&
-            rectanglesOverlap(
-              candidate,
-              excludeRect,
-              12
-            )
-          ) {
-            continue;
-          }
+        };
 
 
-          if (
-            placed.some(
-              function (existing) {
+        const hitsExclude =
+          excludeRect &&
+          rectanglesOverlap(
+            candidate,
+            excludeRect,
+            12
+          );
 
-                return rectanglesOverlap(
-                  candidate,
-                  existing,
-                  8
-                );
 
-              }
-            )
-          ) {
-            continue;
-          }
+        const hitsPhoto =
+          placed.some(
+            function (
+              existing
+            ) {
 
+              return rectanglesOverlap(
+                candidate,
+                existing,
+                8
+              );
+
+            }
+          );
+
+
+        if (
+          !hitsExclude &&
+          !hitsPhoto
+        ) {
 
           position =
             candidate;
 
-          break outerLoop;
+          break;
 
         }
 
       }
 
+
+      /* ---------------------------------------------------------------
+         DETERMINISTIC FALLBACK
+         --------------------------------------------------------------- */
+
+      if (
+        !position
+      ) {
+
+        outerLoop:
+
+        for (
+          let y = 0;
+          y <=
+          stageHeight -
+          cardHeight;
+          y += 8
+        ) {
+
+          for (
+            let x = 0;
+            x <=
+            stageWidth -
+            cardWidth;
+            x += 8
+          ) {
+
+            const candidate = {
+
+              x: x,
+
+              y: y,
+
+              w:
+                cardWidth,
+
+              h:
+                cardHeight
+
+            };
+
+
+            if (
+              excludeRect &&
+              rectanglesOverlap(
+                candidate,
+                excludeRect,
+                12
+              )
+            ) {
+
+              continue;
+
+            }
+
+
+            if (
+              placed.some(
+                function (
+                  existing
+                ) {
+
+                  return rectanglesOverlap(
+                    candidate,
+                    existing,
+                    8
+                  );
+
+                }
+              )
+            ) {
+
+              continue;
+
+            }
+
+
+            position =
+              candidate;
+
+
+            break outerLoop;
+
+          }
+
+        }
+
+      }
+
+
+      /* ---------------------------------------------------------------
+         LAST RESORT
+         --------------------------------------------------------------- */
+
+      if (
+        !position
+      ) {
+
+        position = {
+
+          x: 4,
+
+          y: 4,
+
+          w:
+            cardWidth,
+
+          h:
+            cardHeight
+
+        };
+
+      }
+
+
+      placed.push(
+        position
+      );
+
+
+      slot.card.style.position =
+        'absolute';
+
+
+      slot.card.style.left =
+        Math.round(
+          position.x
+        ) +
+        'px';
+
+
+      slot.card.style.top =
+        Math.round(
+          position.y
+        ) +
+        'px';
+
+
+      slot.card.style.width =
+        cardWidth +
+        'px';
+
+
+      if (
+        slot.frame
+      ) {
+
+        slot.frame.style.height =
+          (
+            cardWidth *
+            0.85
+          ) +
+          'px';
+
+      }
+
     }
-
-
-    /*
-       Last-resort position.
-    */
-
-    if (!position) {
-
-      position = {
-
-        x: 4,
-
-        y: 4,
-
-        w:
-          cardWidth,
-
-        h:
-          cardHeight
-
-      };
-
-    }
-
-
-    placed.push(position);
-
-
-    slot.card.style.position =
-      'absolute';
-
-    slot.card.style.left =
-      Math.round(
-        position.x
-      ) + 'px';
-
-    slot.card.style.top =
-      Math.round(
-        position.y
-      ) + 'px';
-
-    slot.card.style.width =
-      cardWidth + 'px';
-
-
-    if (slot.frame) {
-
-      slot.frame.style.height =
-        (
-          cardWidth *
-          0.85
-        ) + 'px';
-
-    }
-
-  });
+  );
 
 }
