@@ -8,6 +8,8 @@
 </head>
 <body>
 
+  <audio id="birthdayMusic" preload="auto" loop></audio>
+
   <canvas id="fireworksCanvas"></canvas>
   <canvas id="loveAnimCanvas"></canvas>
 
@@ -113,6 +115,10 @@
   document.getElementById('revealMessageText').textContent = CONFIG.customMessage;
   document.getElementById('cakeImg').src = CONFIG.cakeImageUrl;
   document.getElementById('bubuDuduGif').src = CONFIG.bubuDuduGif;
+
+  const birthdayMusic = document.getElementById('birthdayMusic');
+  birthdayMusic.src = CONFIG.birthdayMusic;
+  birthdayMusic.volume = 0.65;
   document.getElementById('cakeImg').addEventListener('load', function(){
     if(mainPage.style.display === 'block') layoutCakeBackdrop();
   });
@@ -134,6 +140,18 @@
     if(entered.length === 4 && entered === CONFIG.password){
       gate.style.display = 'none';
       mainPage.style.display = 'block';
+
+      // Start birthday music after the successful unlock interaction.
+      const birthdayMusic = document.getElementById('birthdayMusic');
+
+      if(birthdayMusic){
+        birthdayMusic.currentTime = 0;
+
+        birthdayMusic.play().catch(function(error){
+          console.log('Birthday music could not start:', error);
+        });
+      }
+
       startCountdown();
       startFireworksLoop();
       startCandleSparks();
